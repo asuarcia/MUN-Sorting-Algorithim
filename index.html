@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YMUN — Committee Assignment System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #090b11;
+      --surface:   #10131c;
+      --surface-2: #171b27;
+      --border:    #1c2030;
+      --border-2:  #242a3a;
+      --gold:      #c8903a;
+      --gold-lt:   #e0a848;
+      --gold-dim:  rgba(200,144,58,0.13);
+      --gold-glow: rgba(200,144,58,0.25);
+      --text:      #edf0f8;
+      --text-2:    #8690a6;
+      --text-3:    #4c5568;
+      --green:     #28c87a;
+      --amber:     #f0a030;
+      --red:       #e04848;
+      --blue:      #4896f5;
+      --purple:    #9870f5;
+      --pink:      #ec4896;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 10% 0%,  rgba(200,144,58,0.05) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 90% 100%, rgba(72,150,245,0.04) 0%, transparent 60%),
+        repeating-linear-gradient(0deg,  transparent, transparent 64px, rgba(255,255,255,0.012) 64px, rgba(255,255,255,0.012) 65px),
+        repeating-linear-gradient(90deg, transparent, transparent 64px, rgba(255,255,255,0.012) 64px, rgba(255,255,255,0.012) 65px);
+      pointer-events: none; z-index: 0;
+    }
+
+    #app { position: relative; z-index: 1; }
+
+    /* ─── HEADER ─── */
+    header {
+      position: sticky; top: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 62px; padding: 0 36px;
+      background: rgba(9,11,17,0.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { display: flex; align-items: center; gap: 13px; }
+    .logo-mark {
+      width: 36px; height: 36px;
+      background: var(--gold); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700;
+      color: #000; box-shadow: 0 0 20px var(--gold-glow); flex-shrink: 0;
+    }
+    .logo-text { display: flex; flex-direction: column; gap: 1px; }
+    .logo-name { font-family: 'Playfair Display', serif; font-size: 14.5px; font-weight: 600; color: var(--text); }
+    .logo-sub  { font-size: 10.5px; color: var(--text-3); letter-spacing: 1.8px; text-transform: uppercase; }
+
+    nav { display: flex; gap: 2px; }
+    nav button {
+      background: none; border: none; padding: 8px 18px; border-radius: 7px;
+      color: var(--text-2); font-family: 'DM Sans', sans-serif;
+      font-size: 13.5px; font-weight: 500; cursor: pointer;
+      transition: all 0.18s; letter-spacing: 0.15px;
+    }
+    nav button:hover  { color: var(--text); background: var(--surface-2); }
+    nav button.active { color: var(--gold); background: var(--gold-dim); }
+
+    .conf-tag {
+      font-size: 11.5px; color: var(--text-3); padding: 5px 14px;
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: 20px; letter-spacing: 0.4px;
+    }
+
+    /* ─── MAIN ─── */
+    main { max-width: 1300px; margin: 0 auto; padding: 40px 36px 80px; }
+    .tab-view        { display: none; }
+    .tab-view.active { display: block; }
+
+    /* ─── PAGE HEADER ─── */
+    .page-header { margin-bottom: 36px; }
+    .page-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+    .page-title   { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: var(--text); line-height: 1.1; margin-bottom: 8px; }
+    .page-sub     { font-size: 14px; color: var(--text-2); line-height: 1.6; }
+
+    /* ─── STAT CARDS ─── */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 36px; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px 22px 18px;
+      position: relative; overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover { border-color: var(--border-2); box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
+    .stat-card::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 2px; background: var(--accent, var(--gold)); opacity: 0.8;
+    }
+    .stat-label { font-size: 10.5px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-3); margin-bottom: 10px; }
+    .stat-value { font-family: 'DM Mono', monospace; font-size: 34px; font-weight: 500; color: var(--text); line-height: 1; margin-bottom: 7px; }
+    .stat-hint  { font-size: 11.5px; color: var(--text-3); }
+
+    /* ─── SECTION HEADER ─── */
+    .section-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-title { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 600; color: var(--text); }
+
+    /* ─── LEGEND ─── */
+    .legend { display: flex; flex-wrap: wrap; gap: 6px; }
+    .legend-item { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.2px; }
+
+    /* ─── COMMITTEE CARDS ─── */
+    .committees-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; }
+    .c-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 11px; padding: 18px 20px 16px;
+      transition: all 0.22s; cursor: pointer; position: relative; overflow: hidden;
+    }
+    .c-card:hover {
+      border-color: var(--gold); background: var(--surface-2);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(0,0,0,0.35);
+    }
+    .c-card:hover .c-view-hint { opacity: 1; }
+    .c-view-hint { position: absolute; bottom: 14px; right: 16px; font-size: 10.5px; color: var(--gold); opacity: 0; transition: opacity 0.2s; letter-spacing: 0.3px; }
+
+    .c-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 11px; }
+    .c-name     { font-size: 13.5px; font-weight: 600; color: var(--text); line-height: 1.35; }
+    .size-tag   { font-size: 10px; color: var(--text-3); letter-spacing: 0.5px; text-transform: uppercase; margin-top: 3px; }
+
+    .type-pill  { font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; letter-spacing: 0.2px; }
+
+    .c-topics   { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 13px; }
+    .topic-chip { font-size: 10.5px; color: var(--text-3); padding: 2px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; }
+
+    .c-bar-row  { display: flex; align-items: center; gap: 10px; }
+    .bar-track  { flex: 1; height: 3px; background: var(--border-2); border-radius: 2px; overflow: hidden; }
+    .bar-fill   { height: 100%; border-radius: 2px; width: 0%; transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1); }
+    .bar-label  { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-2); white-space: nowrap; }
+
+    /* ─── ASSIGNMENT TAB ─── */
+    .assign-hero { text-align: center; padding: 56px 20px 44px; max-width: 560px; margin: 0 auto 44px; }
+    .assign-icon {
+      width: 76px; height: 76px; background: var(--gold-dim);
+      border: 1px solid rgba(200,144,58,0.28); border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 26px; font-size: 34px;
+      box-shadow: 0 0 40px var(--gold-glow);
+    }
+    .assign-title { font-family: 'Playfair Display', serif; font-size: 27px; font-weight: 700; margin-bottom: 13px; line-height: 1.2; }
+    .assign-desc  { font-size: 14.5px; color: var(--text-2); line-height: 1.75; margin-bottom: 32px; }
+
+    .run-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--gold); color: #000; border: none;
+      padding: 14px 38px; border-radius: 9px;
+      font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; letter-spacing: 0.15px;
+    }
+    .run-btn:hover:not(:disabled) { background: var(--gold-lt); transform: translateY(-2px); box-shadow: 0 10px 30px var(--gold-glow); }
+    .run-btn:active:not(:disabled) { transform: translateY(0); }
+    .run-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .prog-wrap  { display: none; max-width: 480px; margin: 0 auto 8px; text-align: center; }
+    .prog-label { font-size: 12.5px; color: var(--text-2); margin-bottom: 12px; letter-spacing: 0.2px; }
+    .prog-track { height: 5px; background: var(--border-2); border-radius: 3px; overflow: hidden; }
+    .prog-fill  { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-lt)); border-radius: 3px; width: 0%; transition: width 0.35s cubic-bezier(0.4,0,0.2,1); }
+
+    .res-cards { display: none; grid-template-columns: repeat(3, 1fr); gap: 14px; max-width: 660px; margin: 32px auto 44px; }
+    .res-card  { background: var(--surface); border: 1px solid var(--border); border-radius: 11px; padding: 22px 20px; text-align: center; }
+    .res-num   { font-family: 'DM Mono', monospace; font-size: 38px; font-weight: 500; line-height: 1; margin-bottom: 7px; }
+    .res-lbl   { font-size: 11.5px; color: var(--text-2); letter-spacing: 0.3px; }
+
+    /* ─── TABLE ─── */
+    .tbl-wrap  { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    table      { width: 100%; border-collapse: collapse; }
+    thead th   { padding: 11px 16px; text-align: left; font-size: 10.5px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 1.2px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+    tbody tr   { border-bottom: 1px solid var(--border); transition: background 0.12s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-2); }
+    tbody td   { padding: 10px 16px; font-size: 13px; color: var(--text); }
+
+    .pill          { display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 600; padding: 3px 9px; border-radius: 4px; letter-spacing: 0.2px; }
+    .pill-first    { background: rgba(72,150,245,0.12);  color: var(--blue); }
+    .pill-ret      { background: rgba(40,200,122,0.12);  color: var(--green); }
+    .pill-flag     { background: rgba(224,72,72,0.12);   color: var(--red); }
+    .pill-pending  { background: rgba(76,85,104,0.2);    color: var(--text-3); }
+
+    /* ─── SEARCH BAR ─── */
+    .search-row { display: flex; gap: 10px; margin-bottom: 18px; }
+    .srch {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 16px; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 13.5px;
+      outline: none; transition: border-color 0.18s;
+    }
+    .srch:focus { border-color: rgba(200,144,58,0.5); }
+    .srch::placeholder { color: var(--text-3); }
+
+    .flt {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 14px; color: var(--text-2);
+      font-family: 'DM Sans', sans-serif; font-size: 13px;
+      outline: none; cursor: pointer; transition: border-color 0.18s;
+    }
+    .flt:focus { border-color: rgba(200,144,58,0.5); }
+
+    .action-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      border-radius: 8px; padding: 10px 18px; color: var(--text-2);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all 0.18s; white-space: nowrap;
+    }
+    .action-btn:hover { color: var(--text); border-color: var(--text-3); }
+
+    /* ─── IMPORT TAB ─── */
+    .import-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+
+    .import-zone {
+      border: 2px dashed var(--border-2); border-radius: 14px;
+      padding: 44px 32px; text-align: center; cursor: pointer;
+      transition: all 0.2s; background: var(--surface);
+    }
+    .import-zone:hover, .import-zone.drag-over {
+      border-color: var(--gold); background: var(--gold-dim);
+    }
+    .import-zone-icon  { font-size: 36px; margin-bottom: 16px; }
+    .import-zone-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .import-zone-sub   { font-size: 13px; color: var(--text-2); line-height: 1.6; margin-bottom: 20px; }
+    .import-file-input { display: none; }
+
+    .import-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--gold); color: #000; border: none;
+      padding: 11px 28px; border-radius: 8px;
+      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .import-btn:hover { background: var(--gold-lt); }
+
+    .import-info { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px 26px; }
+    .import-info-title { font-size: 14px; font-weight: 600; margin-bottom: 14px; color: var(--text); }
+    .format-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+    .format-col { flex: 1; }
+    .format-name   { font-size: 12px; font-weight: 600; color: var(--gold); margin-bottom: 2px; font-family: 'DM Mono', monospace; }
+    .format-values { font-size: 11.5px; color: var(--text-2); line-height: 1.5; }
+
+    .csv-preview-wrap { margin-top: 32px; }
+    .csv-preview-wrap .section-title { margin-bottom: 12px; }
+    .preview-stats { display: flex; gap: 20px; margin-bottom: 14px; font-size: 12.5px; color: var(--text-2); }
+    .preview-stats strong { color: var(--text); }
+
+    .template-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: none; border: 1px solid var(--border-2);
+      border-radius: 7px; padding: 8px 16px; color: var(--text-2);
+      font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 500;
+      cursor: pointer; transition: all 0.18s; margin-top: 16px;
+    }
+    .template-btn:hover { color: var(--text); border-color: var(--text-3); }
+
+    /* ─── DRAWER ─── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 300; opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .overlay.active { opacity: 1; pointer-events: all; }
+
+    .drawer {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 460px;
+      background: var(--surface); border-left: 1px solid var(--border-2);
+      z-index: 400;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .drawer.active { transform: translateX(0); }
+
+    .drawer-hd {
+      padding: 22px 24px 18px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .drawer-hd-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .drawer-name   { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; line-height: 1.2; margin-top: 8px; }
+    .drawer-meta   { font-size: 12.5px; color: var(--text-2); margin-top: 5px; }
+
+    .drawer-close {
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      border-radius: 6px; width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-2); cursor: pointer; font-size: 13px;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .drawer-close:hover { color: var(--text); border-color: var(--text-3); }
+
+    .drawer-bar-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11.5px; color: var(--text-2); }
+
+    .drawer-search { padding: 14px 16px 10px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+
+    .drawer-body   { flex: 1; overflow-y: auto; padding: 8px 0; }
+
+    .drawer-count  { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-3); padding: 10px 20px 6px; }
+
+    .drawer-empty  { padding: 48px 24px; text-align: center; color: var(--text-3); font-size: 14px; }
+
+    /* Delegate row inside drawer */
+    .d-row {
+      padding: 13px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+    .d-row:last-child { border-bottom: none; }
+    .d-row:hover { background: var(--surface-2); }
+
+    .d-row-top   { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
+    .d-name      { font-size: 13.5px; font-weight: 600; color: var(--text); }
+    .d-school    { font-size: 11.5px; color: var(--text-2); margin-top: 2px; }
+    .d-topics    { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+
+    .d-row-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; flex-direction: column; align-items: flex-end; }
+
+    .move-btn {
+      background: none; border: 1px solid var(--border-2); border-radius: 5px;
+      padding: 4px 10px; font-size: 11.5px; font-weight: 500;
+      color: var(--text-2); cursor: pointer; transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif; margin-top: 4px; white-space: nowrap;
+    }
+    .move-btn:hover { color: var(--gold); border-color: var(--gold); }
+
+    .move-ui {
+      display: none; align-items: center; gap: 6px;
+      margin-top: 8px; padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .move-ui .flt { font-size: 12px; padding: 7px 10px; flex: 1; }
+    .move-confirm {
+      background: var(--gold); color: #000; border: none;
+      border-radius: 6px; padding: 7px 14px; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .move-confirm:hover { background: var(--gold-lt); }
+    .move-cancel {
+      background: none; border: none; color: var(--text-3);
+      font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1;
+      transition: color 0.15s;
+    }
+    .move-cancel:hover { color: var(--text); }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed; bottom: 28px; right: 28px; z-index: 600;
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      border-left: 3px solid var(--green);
+      border-radius: 10px; padding: 13px 18px;
+      font-size: 13.5px; color: var(--text);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      opacity: 0; transform: translateY(10px);
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none; max-width: 320px;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .anim { opacity: 0; animation: fadeUp 0.45s ease forwards; }
+    .d1 { animation-delay: 0.04s; } .d2 { animation-delay: 0.10s; }
+    .d3 { animation-delay: 0.16s; } .d4 { animation-delay: 0.22s; }
+    .d5 { animation-delay: 0.28s; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { width: 15px; height: 15px; border: 2px solid rgba(0,0,0,0.15); border-top-color: #000; border-radius: 50%; animation: spin 0.55s linear infinite; flex-shrink: 0; }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
+
+    .mono { font-family: 'DM Mono', monospace; }
+    .empty { text-align: center; padding: 48px 20px; color: var(--text-3); font-size: 14px; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── HEADER ── -->
+  <header>
+    <div class="logo">
+      <div class="logo-mark">Y</div>
+      <div class="logo-text">
+        <span class="logo-name">YMUN</span>
+        <span class="logo-sub">Assignment System</span>
+      </div>
+    </div>
+    <nav id="main-nav">
+      <button class="active" onclick="switchTab('dashboard')">Dashboard</button>
+      <button onclick="switchTab('assignment')">Run Assignment</button>
+      <button onclick="switchTab('students')">Delegates</button>
+      <button onclick="switchTab('import')">Import Data</button>
+    </nav>
+    <div class="conf-tag">Conference 2026</div>
+  </header>
+
+  <main>
+
+    <!-- ═══════════ DASHBOARD ═══════════ -->
+    <div id="tab-dashboard" class="tab-view active">
+      <div class="page-header anim d1">
+        <div class="page-eyebrow">Overview</div>
+        <h1 class="page-title">Committee Dashboard</h1>
+        <p class="page-sub" id="dash-sub">18 committees across 6 types · click any committee to view delegates</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card anim d1" style="--accent:var(--gold)">
+          <div class="stat-label">Total Delegates</div>
+          <div class="stat-value" id="d-total">855</div>
+          <div class="stat-hint" id="d-total-hint">Mock dataset · 1,500 in production</div>
+        </div>
+        <div class="stat-card anim d2" style="--accent:var(--blue)">
+          <div class="stat-label">Committees</div>
+          <div class="stat-value">18</div>
+          <div class="stat-hint">855 total seats</div>
+        </div>
+        <div class="stat-card anim d3" style="--accent:var(--green)">
+          <div class="stat-label">Assigned</div>
+          <div class="stat-value" id="d-assigned">—</div>
+          <div class="stat-hint" id="d-assigned-hint">Run assignment first</div>
+        </div>
+        <div class="stat-card anim d4" style="--accent:var(--red)">
+          <div class="stat-label">Flagged</div>
+          <div class="stat-value" id="d-flagged">—</div>
+          <div class="stat-hint">Needs manual review</div>
+        </div>
+      </div>
+
+      <div class="section-hd anim d3">
+        <h2 class="section-title">Committees</h2>
+        <div class="legend" id="legend"></div>
+      </div>
+
+      <div class="committees-grid anim d4" id="committees-grid"></div>
+    </div>
+
+    <!-- ═══════════ ASSIGNMENT ═══════════ -->
+    <div id="tab-assignment" class="tab-view">
+      <div class="assign-hero anim d1">
+        <div class="assign-icon">⚡</div>
+        <h2 class="assign-title">Run Committee Assignment</h2>
+        <p class="assign-desc">Matches all delegates to committees based on type preference, topic ranking, size preference, experience level, and school distribution constraints.</p>
+        <button class="run-btn" id="run-btn" onclick="runAssignmentUI()">
+          <span id="btn-icon">▶</span>
+          <span id="btn-text">Run Assignment</span>
+        </button>
+      </div>
+
+      <div class="prog-wrap" id="prog-wrap">
+        <div class="prog-label" id="prog-label">Initializing…</div>
+        <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+      </div>
+
+      <div class="res-cards" id="res-cards">
+        <div class="res-card"><div class="res-num" id="r-placed" style="color:var(--green)">0</div><div class="res-lbl">Placed</div></div>
+        <div class="res-card"><div class="res-num" id="r-flagged" style="color:var(--red)">0</div><div class="res-lbl">Flagged</div></div>
+        <div class="res-card"><div class="res-num" id="r-fill" style="color:var(--gold)">—</div><div class="res-lbl">Avg. Fill</div></div>
+      </div>
+
+      <div id="assign-results" style="display:none">
+        <div class="section-hd">
+          <h2 class="section-title">Results by Committee</h2>
+          <button class="action-btn" onclick="exportCSV()">↓ Export CSV</button>
+        </div>
+        <div class="tbl-wrap" id="assign-table"></div>
+
+        <div id="flag-section" style="display:none;margin-top:32px">
+          <div class="section-hd">
+            <h2 class="section-title" style="color:var(--red)">⚑ Flagged Delegates</h2>
+            <span style="font-size:12px;color:var(--text-2)">Could not be matched — needs manual placement</span>
+          </div>
+          <div class="tbl-wrap" id="flag-table"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ DELEGATES ═══════════ -->
+    <div id="tab-students" class="tab-view">
+      <div class="page-header anim d1">
+        <div class="page-eyebrow">Delegates</div>
+        <h1 class="page-title">All Registered Delegates</h1>
+        <p class="page-sub" id="delegates-sub">855 delegates across 35 schools · mock dataset</p>
+      </div>
+
+      <div class="search-row anim d2">
+        <input class="srch" type="text" id="srch" placeholder="Search by name or school…" oninput="renderDelegates()">
+        <select class="flt" id="flt-year" onchange="renderDelegates()">
+          <option value="">All Years</option>
+          <option value="first">First Year</option>
+          <option value="returning">Returning</option>
+        </select>
+        <select class="flt" id="flt-status" onchange="renderDelegates()">
+          <option value="">All Status</option>
+          <option value="assigned">Assigned</option>
+          <option value="flagged">Flagged</option>
+          <option value="pending">Not yet assigned</option>
+        </select>
+        <button class="action-btn" onclick="exportCSV()">↓ Export CSV</button>
+      </div>
+
+      <div class="tbl-wrap anim d3">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Name</th><th>School</th><th>Year</th>
+              <th>Pref. Type</th><th>Topics (ranked)</th><th>Size</th><th>Assigned To</th>
+            </tr>
+          </thead>
+          <tbody id="delegate-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════ IMPORT ═══════════ -->
+    <div id="tab-import" class="tab-view">
+      <div class="page-header anim d1">
+        <div class="page-eyebrow">Import Data</div>
+        <h1 class="page-title">Import Delegate Data</h1>
+        <p class="page-sub">Upload a CSV file exported from your registration form to replace the mock dataset.</p>
+      </div>
+
+      <div class="import-layout anim d2">
+        <!-- Left: drop zone -->
+        <div>
+          <div class="import-zone" id="import-zone"
+               ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)"
+               onclick="document.getElementById('file-input').click()">
+            <div class="import-zone-icon">📄</div>
+            <div class="import-zone-title">Drop your CSV here</div>
+            <div class="import-zone-sub">or click to browse files<br>Accepts .csv files exported from any registration form</div>
+            <button class="import-btn" onclick="event.stopPropagation();document.getElementById('file-input').click()">Choose File</button>
+          </div>
+          <input type="file" id="file-input" class="import-file-input" accept=".csv" onchange="handleFileUpload(event)">
+
+          <button class="template-btn" onclick="downloadTemplate()">↓ Download CSV Template</button>
+        </div>
+
+        <!-- Right: column guide -->
+        <div class="import-info">
+          <div class="import-info-title">Expected CSV Columns</div>
+
+          <div class="format-row">
+            <div class="format-col">
+              <div class="format-name">Name</div>
+              <div class="format-values">Full name of delegate</div>
+            </div>
+          </div>
+          <div class="format-row">
+            <div class="format-col">
+              <div class="format-name">School</div>
+              <div class="format-values">School or institution name</div>
+            </div>
+          </div>
+          <div class="format-row">
+            <div class="format-col">
+              <div class="format-name">Year</div>
+              <div class="format-values">first · 1st · new · novice → First Year<br>anything else → Returning</div>
+            </div>
+          </div>
+          <div class="format-row">
+            <div class="format-col">
+              <div class="format-name">Preferred Type</div>
+              <div class="format-values">Regional Summit · Topic-based · Court<br>General · Historical · Press</div>
+            </div>
+          </div>
+          <div class="format-row">
+            <div class="format-col">
+              <div class="format-name">Preferred Topics</div>
+              <div class="format-values">Up to 3, separated by semicolons<br>e.g. Law;History;Justice</div>
+            </div>
+          </div>
+          <div class="format-row">
+            <div class="format-col">
+              <div class="format-name">Preferred Size</div>
+              <div class="format-values">Small · Medium · Large</div>
+            </div>
+          </div>
+
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);font-size:11.5px;color:var(--text-3);line-height:1.7">
+            Column headers are case-insensitive. Extra columns are ignored. Importing resets any existing assignment — you'll need to re-run it.
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div class="csv-preview-wrap" id="csv-preview-wrap" style="display:none">
+        <hr style="border:none;border-top:1px solid var(--border);margin:32px 0">
+        <div class="section-hd">
+          <h2 class="section-title">Preview</h2>
+          <div style="display:flex;gap:10px">
+            <button class="action-btn" onclick="useSampleData()">← Use sample data instead</button>
+            <button class="import-btn" id="confirm-import-btn" onclick="confirmImport()">Import Delegates</button>
+          </div>
+        </div>
+        <div class="preview-stats" id="preview-stats"></div>
+        <div class="tbl-wrap" id="preview-table"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Drawer overlay + panel -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-search">
+    <input class="srch" type="text" id="drawer-srch" placeholder="Search delegates in this committee…" oninput="filterDrawerList()" style="width:100%">
+  </div>
+  <div id="drawer-content"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  STATIC DATA
+// ═══════════════════════════════════════════════════════════
+
+const COMMITTEES = [
+  { id:1,  name:"African Summit",                   type:"Regional Summit", topics:["Healthcare","Corruption","Industrialization"], size:"Small",  cap:30  },
+  { id:2,  name:"Economic & Finance",               type:"Topic-based",     topics:["Economics","Trade","Banking"],                 size:"Medium", cap:60  },
+  { id:3,  name:"European Summit",                  type:"Regional Summit", topics:["Technology","Politics","Defense"],             size:"Small",  cap:30  },
+  { id:4,  name:"Group of 20",                      type:"General",         topics:["Energy","Economics","Taxation"],               size:"Small",  cap:30  },
+  { id:5,  name:"International Court of Justice",   type:"Court",           topics:["Law","International Relations"],              size:"Small",  cap:25  },
+  { id:6,  name:"International Security & Crime",   type:"Topic-based",     topics:["Security","Military","Law"],                  size:"Medium", cap:60  },
+  { id:7,  name:"Nation Building",                  type:"Historical",      topics:["History","Politics","Economics"],             size:"Large",  cap:120 },
+  { id:8,  name:"Press / Media",                    type:"Press",           topics:["Media","Journalism","Social Media"],          size:"Small",  cap:25  },
+  { id:9,  name:"Social, Humanitarian & Cultural",  type:"Topic-based",     topics:["Human Rights","Environment","Humanitarian"],  size:"Medium", cap:60  },
+  { id:10, name:"Asia-Pacific Summit",              type:"Regional Summit", topics:["Human Rights","Drug Policy","Environment"],   size:"Small",  cap:30  },
+  { id:11, name:"Environment & Technology",         type:"Topic-based",     topics:["Environment","Technology","Energy"],          size:"Medium", cap:60  },
+  { id:12, name:"General Assembly",                 type:"General",         topics:["Population","Security","Humanitarian"],       size:"Large",  cap:120 },
+  { id:13, name:"Historical Security Council",      type:"Historical",      topics:["History","Security","Human Rights"],          size:"Small",  cap:25  },
+  { id:14, name:"International Criminal Court",     type:"Court",           topics:["Law","History","Justice"],                   size:"Small",  cap:25  },
+  { id:15, name:"MENA Summit",                      type:"Regional Summit", topics:["Labor","Healthcare","Human Rights"],          size:"Small",  cap:30  },
+  { id:16, name:"Pan-American Summit",              type:"Regional Summit", topics:["Law","Environment","Politics"],               size:"Small",  cap:30  },
+  { id:17, name:"Security Council",                 type:"Topic-based",     topics:["Security","Technology","Military"],           size:"Small",  cap:25  },
+  { id:18, name:"World Health Organization",        type:"Topic-based",     topics:["Healthcare","Humanitarian","Environment"],    size:"Medium", cap:60  }
+];
+
+const TYPE_STYLE = {
+  "Regional Summit": { bg:"rgba(72,150,245,0.13)",  fg:"#4896f5" },
+  "Topic-based":     { bg:"rgba(152,112,245,0.13)", fg:"#9870f5" },
+  "Court":           { bg:"rgba(224,72,72,0.13)",   fg:"#e04848" },
+  "General":         { bg:"rgba(40,200,122,0.13)",  fg:"#28c87a" },
+  "Historical":      { bg:"rgba(240,160,48,0.13)",  fg:"#f0a030" },
+  "Press":           { bg:"rgba(236,72,150,0.13)",  fg:"#ec4896" }
+};
+
+// ─── Seeded PRNG ─────────────────────────────────────────
+function mkRand(seed) {
+  let s = seed >>> 0;
+  return () => { s = Math.imul(1664525, s) + 1013904223 >>> 0; return s / 0x100000000; };
+}
+
+const FNAME = ["Alex","Sam","Jordan","Taylor","Morgan","Casey","Riley","Avery","Quinn","Cameron",
+  "Skylar","Dana","Jamie","Reese","Logan","Blake","Charlie","Emery","Finley","Hayden",
+  "Aaron","Bella","Carlos","Diana","Ethan","Fiona","Gabriel","Hannah","Ivan","Julia",
+  "Kevin","Luna","Marco","Nina","Oscar","Priya","Rafael","Sofia","Tomás","Uma",
+  "Victor","Wendy","Xander","Yasmine","Zoe","Aiden","Brianna","Connor","Dara","Elena",
+  "Felix","Gracie","Hugo","Ingrid","Jasper","Kira","Liam","Maya","Noah","Olivia"];
+
+const LNAME = ["Smith","Johnson","Chen","Rodriguez","Kim","Patel","Martinez","Williams","Brown","Garcia",
+  "Liu","Taylor","Anderson","Thomas","Hernandez","Moore","Jackson","Thompson","White","Lopez",
+  "Lee","Gonzalez","Harris","Clark","Lewis","Robinson","Walker","Hall","Allen","Young",
+  "King","Wright","Scott","Torres","Nguyen","Hill","Flores","Green","Adams","Nelson",
+  "Baker","Carter","Mitchell","Perez","Roberts","Turner","Phillips","Campbell","Parker","Evans",
+  "Edwards","Collins","Stewart","Sanchez","Morris","Rogers","Reed","Cook","Morgan","Bell"];
+
+const SCHOOLS = [
+  "Lincoln High School","Jefferson Academy","Roosevelt Preparatory","Washington Academy","Madison High",
+  "Franklin Institute","Hamilton School","Monroe Academy","Adams Preparatory","Jackson High",
+  "Kennedy International","Westbrook Academy","Eastside High School","Northgate School","Southfield Prep",
+  "Riverside Academy","Lakewood High","Hillcrest School","Sunnyvale Preparatory","Greenwood Academy",
+  "Clearwater High","Oakridge School","Pinecrest Academy","Cedarville High","Elmwood Prep",
+  "Maplewood Academy","Birchwood High","Willowbrook School","Ashford Preparatory","Stonegate Academy",
+  "Harborview High","Bayside School","Cliffside Prep","Ridgecrest Academy","Valleyview High"
+];
+
+const ALL_TOPICS = ["Healthcare","Economics","Environment","Security","Law","Human Rights",
+  "Technology","History","Media","Labor","Energy","Defense","Politics","Banking",
+  "Trade","Humanitarian","Justice","Social Media","Industrialization","Corruption","Drug Policy"];
+
+const TYPE_OPTS = ["Regional Summit","Topic-based","Court","General","Historical","Press"];
+const SIZE_OPTS = ["Small","Medium","Large"];
+
+function pick(arr, r)  { return arr[Math.floor(r() * arr.length)]; }
+function shuffle(a, r) { const b=[...a]; for(let i=b.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; }
+
+function genStudents(n = 855) {
+  const r = mkRand(7);
+  return Array.from({ length: n }, (_, i) => ({
+    id: i + 1,
+    name: `${pick(FNAME,r)} ${pick(LNAME,r)}`,
+    school: pick(SCHOOLS, r),
+    year: r() < 0.38 ? 'first' : 'returning',
+    prefType: pick(TYPE_OPTS, r),
+    prefTopics: shuffle([...ALL_TOPICS], r).slice(0, 3),
+    prefSize: pick(SIZE_OPTS, r),
+    assigned: null, flagged: false
+  }));
+}
+
+let STUDENTS = genStudents(855);
+
+// ═══════════════════════════════════════════════════════════
+//  ALGORITHM
+// ═══════════════════════════════════════════════════════════
+
+// School spread is a SOFT penalty, not a hard cap.
+// Only hard constraint: committee must have a free seat.
+// Flagging only happens when all 845 seats are filled (10 true overflow with 855 students).
+function scoreMatch(student, committee, fills, schoolCnts, schoolSizes, total) {
+  if (fills[committee.id] >= committee.cap) return -Infinity; // hard: no seats
+
+  let s = 0;
+  if (student.prefType === committee.type) s += 40; else s -= 8;
+  s += student.prefTopics.filter(t => committee.topics.includes(t)).length * 22;
+  if (student.prefSize === committee.size) s += 14;
+  s -= (fills[committee.id] / committee.cap) * 12; // prefer less-full committees
+
+  // Soft school spread: penalise going over proportional fair share
+  // Fair share = (schoolSize / totalStudents) * committeeCapacity
+  // e.g. school of 100 in 120-seat committee → fairShare ≈ 14
+  const count = schoolCnts[committee.id][student.school] || 0;
+  if (count > 0) {
+    const fairShare = Math.max(1, (schoolSizes[student.school] / total) * committee.cap);
+    if (count >= fairShare * 2) s -= 60;      // well over — strong push away
+    else if (count >= fairShare) s -= 25;     // over fair share — mild push away
+  }
+
+  return s;
+}
+
+function runAlgorithm() {
+  STUDENTS.forEach(s => { s.assigned = null; s.flagged = false; });
+
+  const fills      = Object.fromEntries(COMMITTEES.map(c => [c.id, 0]));
+  const schoolCnts = Object.fromEntries(COMMITTEES.map(c => [c.id, {}]));
+
+  // Pre-compute school sizes once
+  const schoolSizes = {};
+  STUDENTS.forEach(s => { schoolSizes[s.school] = (schoolSizes[s.school] || 0) + 1; });
+  const total = STUDENTS.length;
+
+  // Sort by preference specificity: students wanting rarer committee types go first
+  // so they claim those limited spots before everyone else does
+  const typeCount = {};
+  COMMITTEES.forEach(c => { typeCount[c.type] = (typeCount[c.type] || 0) + 1; });
+  const sorted = [...STUDENTS].sort((a, b) =>
+    (typeCount[a.prefType] || 0) - (typeCount[b.prefType] || 0)
+  );
+
+  for (const student of sorted) {
+    let best = -Infinity, bestC = null;
+    for (const c of COMMITTEES) {
+      const s = scoreMatch(student, c, fills, schoolCnts, schoolSizes, total);
+      if (s > best) { best = s; bestC = c; }
+    }
+    // bestC is null only when every committee is at capacity (true seat overflow)
+    if (bestC) {
+      student.assigned = bestC.id;
+      fills[bestC.id]++;
+      schoolCnts[bestC.id][student.school] = (schoolCnts[bestC.id][student.school] || 0) + 1;
+    } else {
+      student.flagged = true;
+    }
+  }
+
+  return { fills };
+}
+
+function recompute() {
+  if (!result) return;
+  COMMITTEES.forEach(c => { result.fills[c.id] = STUDENTS.filter(s => s.assigned === c.id).length; });
+}
+
+let result = null;
+
+// ═══════════════════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════════════════
+
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
+function typePill(type, small = false) {
+  const st = TYPE_STYLE[type] || { bg:'rgba(120,120,120,0.1)', fg:'#888' };
+  return `<span class="type-pill" style="background:${st.bg};color:${st.fg};${small?'font-size:9.5px;padding:2px 7px':''}">${type}</span>`;
+}
+
+// ─── Grid ────────────────────────────────────────────────
+function renderGrid() {
+  document.getElementById('committees-grid').innerHTML = COMMITTEES.map(c => {
+    const cnt = result ? (result.fills[c.id] || 0) : 0;
+    const pct = Math.round(cnt / c.cap * 100);
+    const barClr = pct > 85 ? 'var(--amber)' : pct > 55 ? 'var(--blue)' : 'var(--green)';
+    return `
+    <div class="c-card" onclick="openDrawer(${c.id})">
+      <div class="c-card-top">
+        <div>
+          <div class="c-name">${c.name}</div>
+          <div class="size-tag">${c.size} · ${c.cap} seats</div>
+        </div>
+        ${typePill(c.type)}
+      </div>
+      <div class="c-topics">${c.topics.map(t=>`<span class="topic-chip">${t}</span>`).join('')}</div>
+      <div class="c-bar-row">
+        <div class="bar-track"><div class="bar-fill" id="bf-${c.id}" style="background:${barClr}"></div></div>
+        <span class="bar-label" id="bl-${c.id}">${cnt}/${c.cap}</span>
+      </div>
+      <span class="c-view-hint">View delegates →</span>
+    </div>`;
+  }).join('');
+
+  requestAnimationFrame(() => {
+    COMMITTEES.forEach(c => {
+      const cnt = result ? (result.fills[c.id] || 0) : 0;
+      const el  = document.getElementById(`bf-${c.id}`);
+      if (el) el.style.width = (cnt / c.cap * 100) + '%';
+    });
+  });
+}
+
+function renderLegend() {
+  document.getElementById('legend').innerHTML = Object.entries(TYPE_STYLE)
+    .map(([t,s]) => `<span class="legend-item" style="background:${s.bg};color:${s.fg}">${t}</span>`)
+    .join('');
+}
+
+function updateStats() {
+  const placed  = STUDENTS.filter(s => s.assigned).length;
+  const flagged = STUDENTS.filter(s => s.flagged).length;
+  const totalCap = COMMITTEES.reduce((a,c) => a + c.cap, 0);
+  document.getElementById('d-assigned').textContent      = result ? placed : '—';
+  document.getElementById('d-assigned-hint').textContent = result ? `${Math.round(placed/STUDENTS.length*100)}% of delegates` : 'Run assignment first';
+  document.getElementById('d-flagged').textContent       = result ? flagged : '—';
+}
+
+// ─── Assignment run ──────────────────────────────────────
+async function runAssignmentUI() {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  document.getElementById('btn-icon').innerHTML = '<div class="spinner"></div>';
+  document.getElementById('btn-text').textContent = 'Running…';
+  document.getElementById('prog-wrap').style.display = 'block';
+
+  const steps = [
+    [12,'Loading delegate preferences…'],
+    [28,'Scoring committee compatibility…'],
+    [46,'Ranking by placement difficulty…'],
+    [62,'Applying school distribution limits…'],
+    [78,'Greedy assignment pass…'],
+    [92,'Flagging unresolvable delegates…'],
+    [100,'Complete!']
+  ];
+
+  const fill = document.getElementById('prog-fill');
+  const lbl  = document.getElementById('prog-label');
+  for (const [p, msg] of steps) {
+    await delay(200 + Math.random() * 180);
+    fill.style.width = p + '%';
+    lbl.textContent  = msg;
+  }
+
+  result = runAlgorithm();
+  await delay(280);
+
+  const placed   = STUDENTS.filter(s => s.assigned).length;
+  const flagged  = STUDENTS.filter(s => s.flagged).length;
+  const totalCap = COMMITTEES.reduce((a,c) => a + c.cap, 0);
+  const avgFill  = Math.round(placed / totalCap * 100);
+
+  document.getElementById('r-placed').textContent  = placed;
+  document.getElementById('r-flagged').textContent = flagged;
+  document.getElementById('r-fill').textContent    = avgFill + '%';
+  document.getElementById('res-cards').style.display = 'grid';
+
+  updateStats();
+  renderAssignTable();
+  renderFlagTable();
+  document.getElementById('assign-results').style.display = 'block';
+  renderGrid();
+
+  btn.disabled = false;
+  document.getElementById('btn-icon').textContent = '✓';
+  document.getElementById('btn-text').textContent = 'Re-run Assignment';
+  lbl.textContent = `Done — ${placed} placed · ${flagged} flagged`;
+  showToast(`Assignment complete · ${placed} delegates placed`);
+}
+
+function renderAssignTable() {
+  let html = `<table><thead><tr><th>Committee</th><th>Type</th><th>Size</th><th>Assigned</th><th>Cap.</th><th>Fill</th><th>Schools</th></tr></thead><tbody>`;
+  COMMITTEES.forEach(c => {
+    const cnt    = result.fills[c.id] || 0;
+    const pct    = Math.round(cnt / c.cap * 100);
+    const pctClr = pct > 85 ? 'var(--amber)' : 'var(--green)';
+    const schools = new Set(STUDENTS.filter(s => s.assigned === c.id).map(s => s.school)).size;
+    html += `<tr style="cursor:pointer" onclick="openDrawer(${c.id})">
+      <td style="font-weight:500">${c.name}</td>
+      <td>${typePill(c.type, true)}</td>
+      <td style="color:var(--text-2);font-size:12px">${c.size}</td>
+      <td class="mono">${cnt}</td>
+      <td class="mono" style="color:var(--text-2)">${c.cap}</td>
+      <td><span class="mono" style="color:${pctClr}">${pct}%</span></td>
+      <td style="color:var(--text-2);font-size:12px">${schools}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('assign-table').innerHTML = html;
+}
+
+function renderFlagTable() {
+  const flagged = STUDENTS.filter(s => s.flagged);
+  const sec = document.getElementById('flag-section');
+  if (!flagged.length) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  let html = `<table><thead><tr><th>#</th><th>Name</th><th>School</th><th>Year</th><th>Pref. Type</th><th>Pref. Topics</th></tr></thead><tbody>`;
+  flagged.forEach(s => {
+    html += `<tr><td class="mono" style="color:var(--text-3);font-size:12px">${s.id}</td>
+      <td style="font-weight:500">${s.name}</td>
+      <td style="color:var(--text-2);font-size:12.5px">${s.school}</td>
+      <td><span class="pill ${s.year==='first'?'pill-first':'pill-ret'}">${s.year==='first'?'First':'Returning'}</span></td>
+      <td>${typePill(s.prefType, true)}</td>
+      <td style="color:var(--text-2);font-size:12px">${s.prefTopics.join(', ')}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('flag-table').innerHTML = html;
+}
+
+// ─── Delegates table ─────────────────────────────────────
+function renderDelegates() {
+  const q      = document.getElementById('srch').value.toLowerCase();
+  const yr     = document.getElementById('flt-year').value;
+  const status = document.getElementById('flt-status').value;
+
+  const filtered = STUDENTS.filter(s => {
+    if (q && !s.name.toLowerCase().includes(q) && !s.school.toLowerCase().includes(q)) return false;
+    if (yr && s.year !== yr) return false;
+    if (status === 'assigned' && !s.assigned) return false;
+    if (status === 'flagged'  && !s.flagged)  return false;
+    if (status === 'pending'  && (s.assigned || s.flagged)) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('delegate-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty">No delegates match this filter</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.slice(0, 120).map(s => {
+    const committee = s.assigned ? COMMITTEES.find(c => c.id === s.assigned) : null;
+    let assignedCell;
+    if (s.flagged)    assignedCell = `<span class="pill pill-flag">⚑ Review needed</span>`;
+    else if (committee) assignedCell = `<span style="font-size:12.5px;color:var(--text-2)">${committee.name}</span>`;
+    else              assignedCell = `<span class="pill pill-pending">Pending</span>`;
+    return `<tr>
+      <td class="mono" style="color:var(--text-3);font-size:11.5px">${s.id}</td>
+      <td style="font-weight:500">${s.name}</td>
+      <td style="color:var(--text-2);font-size:12.5px">${s.school}</td>
+      <td><span class="pill ${s.year==='first'?'pill-first':'pill-ret'}">${s.year==='first'?'First':'Returning'}</span></td>
+      <td>${typePill(s.prefType, true)}</td>
+      <td style="color:var(--text-2);font-size:12px">${s.prefTopics.join(', ')}</td>
+      <td style="color:var(--text-3);font-size:12px">${s.prefSize}</td>
+      <td>${assignedCell}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DRAWER
+// ═══════════════════════════════════════════════════════════
+
+let drawerCommitteeId = null;
+
+function openDrawer(committeeId) {
+  drawerCommitteeId = committeeId;
+  document.getElementById('overlay').classList.add('active');
+  document.getElementById('drawer').classList.add('active');
+  document.getElementById('drawer-srch').value = '';
+  renderDrawerContent();
+}
+
+function closeDrawer() {
+  document.getElementById('overlay').classList.remove('active');
+  document.getElementById('drawer').classList.remove('active');
+  drawerCommitteeId = null;
+}
+
+function filterDrawerList() {
+  const q = document.getElementById('drawer-srch').value.toLowerCase();
+  document.querySelectorAll('.d-row').forEach(row => {
+    row.style.display = q && !row.textContent.toLowerCase().includes(q) ? 'none' : '';
+  });
+}
+
+function renderDrawerContent() {
+  const c = COMMITTEES.find(x => x.id === drawerCommitteeId);
+  if (!c) return;
+  const st        = TYPE_STYLE[c.type];
+  const delegates = result ? STUDENTS.filter(s => s.assigned === drawerCommitteeId) : [];
+  const cnt       = delegates.length;
+  const pct       = Math.round(cnt / c.cap * 100);
+  const schoolSet = new Set(delegates.map(d => d.school));
+  const barClr    = pct > 85 ? 'var(--amber)' : pct > 55 ? 'var(--blue)' : 'var(--green)';
+  const otherComms = COMMITTEES.filter(x => x.id !== drawerCommitteeId);
+
+  let html = `
+    <div class="drawer-hd">
+      <div class="drawer-hd-top">
+        <div>
+          <div>${typePill(c.type)}</div>
+          <div class="drawer-name">${c.name}</div>
+          <div class="drawer-meta">${c.size} · ${c.cap} seats · ${schoolSet.size} schools</div>
+        </div>
+        <button class="drawer-close" onclick="closeDrawer()">✕</button>
+      </div>
+      <div class="bar-track" style="margin-top:14px;height:4px">
+        <div class="bar-fill" style="width:${pct}%;background:${barClr}"></div>
+      </div>
+      <div class="drawer-bar-labels"><span>${cnt} assigned</span><span>${pct}% full</span></div>
+    </div>`;
+
+  if (!result) {
+    html += `<div class="drawer-empty">Run assignment first to see delegates.</div>`;
+  } else if (!delegates.length) {
+    html += `<div class="drawer-empty">No delegates assigned to this committee.</div>`;
+  } else {
+    html += `<div class="drawer-count">${cnt} delegate${cnt !== 1 ? 's' : ''}</div>`;
+    html += delegates.map(s => {
+      const opts = otherComms.map(x =>
+        `<option value="${x.id}">${x.name} (${result.fills[x.id]}/${x.cap})</option>`
+      ).join('');
+      return `
+      <div class="d-row" id="drow-${s.id}">
+        <div class="d-row-top">
+          <div>
+            <div class="d-name">${s.name}</div>
+            <div class="d-school">${s.school}</div>
+          </div>
+          <div class="d-row-actions">
+            <span class="pill ${s.year==='first'?'pill-first':'pill-ret'}">${s.year==='first'?'First':'Returning'}</span>
+            <button class="move-btn" id="movebtn-${s.id}" onclick="showMoveUI(${s.id})">Move →</button>
+          </div>
+        </div>
+        <div class="d-topics">${s.prefTopics.map(t=>`<span class="topic-chip">${t}</span>`).join('')}</div>
+        <div class="move-ui" id="moveui-${s.id}">
+          <select class="flt" id="movesel-${s.id}" style="flex:1;font-size:12px;padding:7px 10px">
+            <option value="">Select committee…</option>
+            <option value="unassign">— Unassign delegate —</option>
+            ${opts}
+          </select>
+          <button class="move-confirm" onclick="confirmMove(${s.id})">Move</button>
+          <button class="move-cancel" onclick="cancelMove(${s.id})">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('drawer-content').innerHTML = html;
+}
+
+function showMoveUI(studentId) {
+  document.getElementById(`movebtn-${studentId}`).style.display = 'none';
+  document.getElementById(`moveui-${studentId}`).style.display  = 'flex';
+}
+
+function cancelMove(studentId) {
+  document.getElementById(`movebtn-${studentId}`).style.display = 'inline-flex';
+  document.getElementById(`moveui-${studentId}`).style.display  = 'none';
+}
+
+function confirmMove(studentId) {
+  const sel = document.getElementById(`movesel-${studentId}`);
+  const val = sel.value;
+  if (!val) { showToast('Please select a committee first'); return; }
+
+  const student = STUDENTS.find(s => s.id === studentId);
+  if (!student) return;
+
+  if (val === 'unassign') {
+    student.assigned = null;
+    student.flagged  = true;
+    showToast(`${student.name} unassigned — flagged for review`);
+  } else {
+    const toId = parseInt(val);
+    student.assigned = toId;
+    student.flagged  = false;
+    const toName = COMMITTEES.find(c => c.id === toId)?.name;
+    showToast(`${student.name} → ${toName}`);
+  }
+
+  recompute();
+  renderDrawerContent();
+  renderGrid();
+  updateStats();
+  if (document.getElementById('assign-results').style.display !== 'none') {
+    renderAssignTable();
+    renderFlagTable();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CSV IMPORT
+// ═══════════════════════════════════════════════════════════
+
+let csvPendingStudents = null;
+
+function dragOver(e)  { e.preventDefault(); document.getElementById('import-zone').classList.add('drag-over'); }
+function dragLeave(e) { document.getElementById('import-zone').classList.remove('drag-over'); }
+function dropFile(e)  {
+  e.preventDefault();
+  document.getElementById('import-zone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) readCSVFile(file);
+}
+function handleFileUpload(e) { const f = e.target.files[0]; if (f) readCSVFile(f); }
+
+function readCSVFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => processCSV(e.target.result, file.name);
+  reader.readAsText(file);
+}
+
+function processCSV(text, filename) {
+  try {
+    const students = parseCSV(text);
+    if (!students.length) { showToast('No valid rows found in CSV'); return; }
+    csvPendingStudents = students;
+    showCSVPreview(students, filename);
+  } catch(e) {
+    showToast('Error parsing CSV — check the format and try again');
+    console.error(e);
+  }
+}
+
+function parseCSVRow(line) {
+  const result = []; let cur = ''; let inQ = false;
+  for (const ch of line) {
+    if (ch === '"') { inQ = !inQ; }
+    else if (ch === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
+    else { cur += ch; }
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+function findCol(headers, candidates) {
+  for (const c of candidates) {
+    const i = headers.indexOf(c);
+    if (i !== -1) return i;
+  }
+  return -1;
+}
+
+function matchType(raw) {
+  const r = raw.toLowerCase();
+  if (r.includes('regional') || r.includes('summit')) return 'Regional Summit';
+  if (r.includes('court') && !r.includes('criminal')) return 'Court';
+  if (r.includes('criminal')) return 'Court';
+  if (r.includes('historical') || r.includes('history')) return 'Historical';
+  if (r.includes('press') || r.includes('media')) return 'Press';
+  if (r.includes('general') || r.includes('assembly')) return 'General';
+  if (r.includes('topic') || r.includes('specialized')) return 'Topic-based';
+  // Try exact match
+  for (const t of TYPE_OPTS) { if (t.toLowerCase() === r) return t; }
+  return 'Topic-based';
+}
+
+function matchSize(raw) {
+  const r = raw.toLowerCase().trim();
+  if (r === 'small' || r === 's') return 'Small';
+  if (r === 'large' || r === 'l') return 'Large';
+  return 'Medium';
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  if (lines.length < 2) throw new Error('Empty CSV');
+  const headers = parseCSVRow(lines[0]).map(h => h.toLowerCase().trim());
+
+  const cm = {
+    name:   findCol(headers, ['name','full name','student name','delegate name']),
+    school: findCol(headers, ['school','school name','institution','organization']),
+    year:   findCol(headers, ['year','experience','delegate year','level']),
+    type:   findCol(headers, ['preferred type','type','committee type','pref type','preference type']),
+    topics: findCol(headers, ['preferred topics','topics','pref topics','topic preferences']),
+    size:   findCol(headers, ['preferred size','size','pref size','committee size'])
+  };
+
+  const students = [];
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const cols = parseCSVRow(lines[i]);
+
+    const rawYear = cm.year !== -1 ? (cols[cm.year] || '').toLowerCase() : '';
+    const year    = ['first','1st','new','novice','freshman','beginner','f'].some(v => rawYear.includes(v)) ? 'first' : 'returning';
+
+    const rawType  = cm.type !== -1 ? (cols[cm.type] || '') : '';
+    const prefType = rawType ? matchType(rawType) : 'Topic-based';
+
+    const rawTopics  = cm.topics !== -1 ? (cols[cm.topics] || '') : '';
+    const prefTopics = rawTopics.split(/[;,|]/).map(t => t.trim()).filter(Boolean).slice(0, 3);
+
+    const rawSize  = cm.size !== -1 ? (cols[cm.size] || '') : '';
+    const prefSize = rawSize ? matchSize(rawSize) : 'Medium';
+
+    const name   = cm.name   !== -1 ? (cols[cm.name]   || `Delegate ${i}`).trim() : `Delegate ${i}`;
+    const school = cm.school !== -1 ? (cols[cm.school] || 'Unknown School').trim() : 'Unknown School';
+
+    students.push({ id: i, name, school, year, prefType, prefTopics: prefTopics.length ? prefTopics : ['Economics'], prefSize, assigned: null, flagged: false });
+  }
+  return students;
+}
+
+function showCSVPreview(students, filename) {
+  const wrap  = document.getElementById('csv-preview-wrap');
+  const stats = document.getElementById('preview-stats');
+  const tbl   = document.getElementById('preview-table');
+
+  const schools = new Set(students.map(s => s.school)).size;
+  const firstYr = students.filter(s => s.year === 'first').length;
+
+  stats.innerHTML = `
+    <span><strong>${students.length}</strong> delegates</span>
+    <span><strong>${schools}</strong> schools</span>
+    <span><strong>${firstYr}</strong> first-year</span>
+    <span><strong>${students.length - firstYr}</strong> returning</span>`;
+
+  const preview = students.slice(0, 8);
+  let html = `<table><thead><tr><th>#</th><th>Name</th><th>School</th><th>Year</th><th>Pref. Type</th><th>Topics</th><th>Size</th></tr></thead><tbody>`;
+  preview.forEach(s => {
+    html += `<tr>
+      <td class="mono" style="color:var(--text-3);font-size:12px">${s.id}</td>
+      <td style="font-weight:500">${s.name}</td>
+      <td style="color:var(--text-2);font-size:12.5px">${s.school}</td>
+      <td><span class="pill ${s.year==='first'?'pill-first':'pill-ret'}">${s.year==='first'?'First':'Returning'}</span></td>
+      <td>${typePill(s.prefType, true)}</td>
+      <td style="color:var(--text-2);font-size:12px">${s.prefTopics.join(', ')}</td>
+      <td style="color:var(--text-3);font-size:12px">${s.prefSize}</td>
+    </tr>`;
+  });
+  if (students.length > 8) {
+    html += `<tr><td colspan="7" style="text-align:center;color:var(--text-3);font-size:12px;padding:12px">… and ${students.length - 8} more</td></tr>`;
+  }
+  html += '</tbody></table>';
+  tbl.innerHTML = html;
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function confirmImport() {
+  if (!csvPendingStudents || !csvPendingStudents.length) return;
+  STUDENTS = csvPendingStudents;
+  result   = null;
+  csvPendingStudents = null;
+
+  // Reset UI
+  updateStats();
+  renderGrid();
+  renderDelegates();
+  document.getElementById('d-total').textContent      = STUDENTS.length;
+  document.getElementById('d-total-hint').textContent = `${STUDENTS.length} delegates imported`;
+  document.getElementById('delegates-sub').textContent = `${STUDENTS.length} delegates · imported data`;
+
+  // Reset assignment tab
+  document.getElementById('assign-results').style.display = 'none';
+  document.getElementById('res-cards').style.display = 'none';
+  document.getElementById('prog-wrap').style.display = 'none';
+  document.getElementById('btn-icon').textContent = '▶';
+  document.getElementById('btn-text').textContent = 'Run Assignment';
+  document.getElementById('run-btn').disabled = false;
+
+  showToast(`${STUDENTS.length} delegates imported · run assignment to sort them`);
+  switchTab('dashboard');
+}
+
+function useSampleData() {
+  STUDENTS = genStudents(855);
+  result   = null;
+  csvPendingStudents = null;
+  document.getElementById('csv-preview-wrap').style.display = 'none';
+  updateStats();
+  renderGrid();
+  renderDelegates();
+  document.getElementById('d-total').textContent      = 200;
+  document.getElementById('d-total-hint').textContent = 'Mock dataset · 1,500 in production';
+  showToast('Reverted to mock sample data');
+  switchTab('dashboard');
+}
+
+function downloadTemplate() {
+  const csv = `Name,School,Year,Preferred Type,Preferred Topics,Preferred Size
+Alex Smith,Lincoln High School,first,Court,"Law;History;Justice",Small
+Maria Garcia,Jefferson Academy,returning,Regional Summit,"Healthcare;Human Rights;Labor",Medium
+Jordan Lee,Roosevelt Prep,first,Topic-based,"Economics;Trade;Banking",Large
+Priya Patel,Westbrook Academy,returning,Historical,"History;Security;Politics",Small
+Carlos Hernandez,Riverside Academy,first,General,"Environment;Humanitarian;Energy",Large`;
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href:url, download:'ymun-template.csv' });
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ─── CSV Export ───────────────────────────────────────────
+function exportCSV() {
+  const header = ['ID','Name','School','Year','Pref Type','Pref Topics','Pref Size','Assigned Committee','Flagged'];
+  const rows   = STUDENTS.map(s => {
+    const c = s.assigned ? COMMITTEES.find(x => x.id === s.assigned)?.name ?? '' : '';
+    return [s.id, s.name, s.school, s.year, s.prefType, s.prefTopics.join(';'), s.prefSize, c, s.flagged?'Yes':'No'];
+  });
+  const csv  = [header, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type:'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href:url, download:'ymun-assignments.csv' });
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ─── Toast ────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─── Tab switch ───────────────────────────────────────────
+const TABS = ['dashboard','assignment','students','import'];
+function switchTab(name) {
+  TABS.forEach((t, i) => {
+    document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
+    document.querySelectorAll('#main-nav button')[i].classList.toggle('active', t === name);
+  });
+  if (name === 'students') renderDelegates();
+}
+
+// ─── Keyboard: Escape closes drawer ──────────────────────
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+// ─── Init ─────────────────────────────────────────────────
+document.getElementById('d-total').textContent = STUDENTS.length;
+renderLegend();
+renderGrid();
+renderDelegates();
+</script>
+</body>
+</html>
