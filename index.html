@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YMUN — Committee Assignment System</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <title>MUN Committee Sorter</title>
+  <!-- Fonts are bundled locally: the app makes no network requests at all. -->
+  <link href="vendor/fonts/fonts.css" rel="stylesheet">
+  <link rel="icon" href="favicon.png">
   <style>
     :root {
       --bg:        #090b11;
@@ -181,7 +183,7 @@
     .prog-track { height: 5px; background: var(--border-2); border-radius: 3px; overflow: hidden; }
     .prog-fill  { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-lt)); border-radius: 3px; width: 0%; transition: width 0.35s cubic-bezier(0.4,0,0.2,1); }
 
-    .res-cards { display: none; grid-template-columns: repeat(3, 1fr); gap: 14px; max-width: 660px; margin: 32px auto 44px; }
+    .res-cards { display: none; grid-template-columns: repeat(4, 1fr); gap: 14px; max-width: 820px; margin: 32px auto 44px; }
     .res-card  { background: var(--surface); border: 1px solid var(--border); border-radius: 11px; padding: 22px 20px; text-align: center; }
     .res-num   { font-family: 'DM Mono', monospace; font-size: 38px; font-weight: 500; line-height: 1; margin-bottom: 7px; }
     .res-lbl   { font-size: 11.5px; color: var(--text-2); letter-spacing: 0.3px; }
@@ -395,6 +397,87 @@
     ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
 
     .mono { font-family: 'DM Mono', monospace; }
+
+    /* ─── HEADER TOOLS ─── */
+    .hdr-tools { display: flex; align-items: center; gap: 8px; }
+    .hdr-btn {
+      background: none; border: 1px solid var(--border-2); border-radius: 20px;
+      padding: 5px 13px; color: var(--text-2); font-family: 'DM Sans', sans-serif;
+      font-size: 11.5px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .hdr-btn:hover { color: var(--text); border-color: var(--text-3); }
+    .conf-tag { cursor: pointer; }
+    .conf-tag:hover { color: var(--text); border-color: var(--text-3); }
+
+    /* ─── NOTICES ─── */
+    .notice {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 11px 15px; border-radius: 9px; font-size: 12.5px; line-height: 1.6;
+      border: 1px solid var(--border-2); background: var(--surface); color: var(--text-2);
+      margin-bottom: 10px;
+    }
+    .notice b { color: var(--text); font-weight: 600; }
+    .notice.warn  { border-color: rgba(240,160,48,0.35); background: rgba(240,160,48,0.07); }
+    .notice.error { border-color: rgba(224,72,72,0.4);  background: rgba(224,72,72,0.08); }
+    .notice.info  { border-color: rgba(72,150,245,0.3); background: rgba(72,150,245,0.06); }
+    .notice.ok    { border-color: rgba(40,200,122,0.3); background: rgba(40,200,122,0.06); }
+    .notice-ico   { flex-shrink: 0; }
+    .preflight    { max-width: 720px; margin: -24px auto 32px; text-align: left; }
+
+    .link-btn { background: none; border: none; color: var(--gold); cursor: pointer; font: inherit; padding: 0; text-decoration: underline; text-underline-offset: 2px; }
+
+    /* ─── STEPS (dashboard) ─── */
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 36px; }
+    .step  {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 11px;
+      padding: 15px 17px; cursor: pointer; transition: all 0.18s; text-align: left;
+      font-family: 'DM Sans', sans-serif; color: var(--text);
+    }
+    .step:hover { border-color: var(--gold); }
+    .step-n  { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--gold); margin-bottom: 5px; }
+    .step-t  { font-size: 13.5px; font-weight: 600; margin-bottom: 3px; }
+    .step-d  { font-size: 11.5px; color: var(--text-3); line-height: 1.5; }
+    .step.done .step-n::after { content: ' ✓'; color: var(--green); }
+
+    /* ─── COMMITTEE EDITOR ─── */
+    .cedit-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
+    .cedit-bar .spacer { flex: 1; }
+    .cedit td { padding: 7px 8px; vertical-align: middle; }
+    .cedit th { padding: 10px 8px; }
+    .cedit input, .cedit select {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 7px 9px; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 12.5px; outline: none;
+    }
+    .cedit input:focus, .cedit select:focus { border-color: rgba(200,144,58,0.5); }
+    .cedit input.num { width: 72px; font-family: 'DM Mono', monospace; }
+    .cedit .del { background: none; border: none; color: var(--text-3); cursor: pointer; font-size: 15px; padding: 4px 8px; border-radius: 5px; }
+    .cedit .del:hover { color: var(--red); background: rgba(224,72,72,0.1); }
+    .dirty-dot { display: none; font-size: 12px; color: var(--amber); }
+    .dirty .dirty-dot { display: inline; }
+    .primary-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--gold); color: #000; border: none; border-radius: 8px;
+      padding: 10px 20px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.18s;
+    }
+    .primary-btn:hover { background: var(--gold-lt); }
+    .primary-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .reason { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+    .pill-hand { background: rgba(152,112,245,0.14); color: var(--purple); }
+    .place-ui { display: flex; gap: 6px; }
+    .place-ui .flt { padding: 6px 9px; font-size: 12px; }
+    .res-sub { text-align: center; font-size: 12.5px; color: var(--text-2); margin: -28px auto 40px; max-width: 720px; line-height: 1.7; }
+    .table-foot { padding: 10px 16px; font-size: 12px; color: var(--text-3); text-align: center; border-top: 1px solid var(--border); }
+
+    @media (max-width: 1100px) {
+      .committees-grid { grid-template-columns: repeat(2, 1fr); }
+      .steps, .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .import-layout { grid-template-columns: 1fr; }
+      header { padding: 0 18px; }
+      nav button { padding: 8px 11px; }
+    }
     .empty { text-align: center; padding: 48px 20px; color: var(--text-3); font-size: 14px; }
   </style>
 </head>
@@ -404,20 +487,26 @@
   <!-- ── HEADER ── -->
   <header>
     <div class="logo">
-      <div class="logo-mark">Y</div>
+      <div class="logo-mark" id="logo-mark">M</div>
       <div class="logo-text">
-        <span class="logo-name">YMUN</span>
-        <span class="logo-sub">Assignment System</span>
+        <span class="logo-name" id="logo-name">Model UN</span>
+        <span class="logo-sub">Committee Sorter</span>
       </div>
     </div>
     <nav id="main-nav">
-      <button class="active" onclick="switchTab('dashboard')">Dashboard</button>
-      <button onclick="switchTab('assignment')">Run Assignment</button>
-      <button onclick="switchTab('students')">Delegates</button>
-      <button onclick="switchTab('import')">Import Data</button>
+      <button data-tab="dashboard" class="active">Dashboard</button>
+      <button data-tab="import">Import</button>
+      <button data-tab="committees">Committees</button>
+      <button data-tab="assignment">Run Assignment</button>
+      <button data-tab="students">Delegates</button>
     </nav>
-    <div class="conf-tag">Conference 2026</div>
+    <div class="hdr-tools">
+      <button class="hdr-btn" onclick="openSession()" title="Open a session file saved earlier">Open session</button>
+      <button class="hdr-btn" onclick="saveSession()" title="Save delegates, committees and placements to a file">Save session</button>
+      <div class="conf-tag" id="conf-tag" onclick="renameConference()" title="Click to rename your conference">Conference</div>
+    </div>
   </header>
+  <input type="file" id="session-input" accept=".json,application/json" style="display:none" onchange="loadSessionFile(event)">
 
   <main>
 
@@ -426,19 +515,31 @@
       <div class="page-header anim d1">
         <div class="page-eyebrow">Overview</div>
         <h1 class="page-title">Committee Dashboard</h1>
-        <p class="page-sub" id="dash-sub">18 committees across 6 types · click any committee to view delegates</p>
+        <p class="page-sub" id="dash-sub"></p>
+      </div>
+
+      <div id="sample-banner" class="notice info anim d1">
+        <span class="notice-ico">ℹ</span>
+        <span>You're looking at <b>sample data</b> (fake delegates). <button class="link-btn" onclick="switchTab('import')">Import your registration spreadsheet</button> to sort your own conference.</span>
+      </div>
+
+      <div class="steps anim d2">
+        <button class="step" id="step-import" onclick="switchTab('import')"><div class="step-n">STEP 1</div><div class="step-t">Import delegates</div><div class="step-d">Drop in the CSV or Excel export from your registration form.</div></button>
+        <button class="step" id="step-committees" onclick="switchTab('committees')"><div class="step-n">STEP 2</div><div class="step-t">Set up committees</div><div class="step-d">Names, seats, topics and which are advanced.</div></button>
+        <button class="step" id="step-assign" onclick="switchTab('assignment')"><div class="step-n">STEP 3</div><div class="step-t">Run assignment</div><div class="step-d">Every delegate gets a seat in seconds.</div></button>
+        <button class="step" id="step-review" onclick="switchTab('assignment')"><div class="step-n">STEP 4</div><div class="step-t">Review &amp; export</div><div class="step-d">Fix by hand, then export rosters for chairs and schools.</div></button>
       </div>
 
       <div class="stats-row">
         <div class="stat-card anim d1" style="--accent:var(--gold)">
           <div class="stat-label">Total Delegates</div>
-          <div class="stat-value" id="d-total">855</div>
-          <div class="stat-hint" id="d-total-hint">Mock dataset · 1,500 in production</div>
+          <div class="stat-value" id="d-total">—</div>
+          <div class="stat-hint" id="d-total-hint"></div>
         </div>
         <div class="stat-card anim d2" style="--accent:var(--blue)">
           <div class="stat-label">Committees</div>
-          <div class="stat-value">18</div>
-          <div class="stat-hint">855 total seats</div>
+          <div class="stat-value" id="d-committees">—</div>
+          <div class="stat-hint" id="d-seats-hint"></div>
         </div>
         <div class="stat-card anim d3" style="--accent:var(--green)">
           <div class="stat-label">Assigned</div>
@@ -448,7 +549,7 @@
         <div class="stat-card anim d4" style="--accent:var(--red)">
           <div class="stat-label">Flagged</div>
           <div class="stat-value" id="d-flagged">—</div>
-          <div class="stat-hint">Needs manual review</div>
+          <div class="stat-hint">Needs a seat by hand</div>
         </div>
       </div>
 
@@ -460,17 +561,102 @@
       <div class="committees-grid anim d4" id="committees-grid"></div>
     </div>
 
+    <!-- ═══════════ IMPORT ═══════════ -->
+    <div id="tab-import" class="tab-view">
+      <div class="page-header anim d1">
+        <div class="page-eyebrow">Step 1 · Import</div>
+        <h1 class="page-title">Import Delegate Data</h1>
+        <p class="page-sub">Upload the spreadsheet exported from your registration form (CSV or Excel). Only the columns the sorter needs are read. Every other column (personal data) is ignored, and nothing ever leaves this computer.</p>
+      </div>
+
+      <div class="import-layout anim d2">
+        <div>
+          <div class="import-zone" id="import-zone"
+               ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)"
+               onclick="document.getElementById('file-input').click()">
+            <div class="import-zone-icon">📄</div>
+            <div class="import-zone-title">Drop your spreadsheet here</div>
+            <div class="import-zone-sub">or click to browse files<br>Accepts .csv, .xlsx and .xls from Google Forms, Airtable, Excel, etc.</div>
+            <button class="import-btn" onclick="event.stopPropagation();document.getElementById('file-input').click()">Choose File</button>
+          </div>
+          <input type="file" id="file-input" class="import-file-input" accept=".csv,.xlsx,.xls" onchange="handleFileUpload(event)">
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="template-btn" onclick="downloadTemplate()">↓ Download blank template</button>
+            <button class="template-btn" onclick="useSampleData()">Load sample data</button>
+          </div>
+        </div>
+
+        <div class="import-info">
+          <div class="import-info-title">Columns the sorter reads</div>
+          <div class="format-row"><div class="format-col"><div class="format-name">Name</div><div class="format-values">Full name of delegate</div></div></div>
+          <div class="format-row"><div class="format-col"><div class="format-name">School</div><div class="format-values">School or delegation (used to spread schools across rooms)</div></div></div>
+          <div class="format-row"><div class="format-col"><div class="format-name">Year</div><div class="format-values">first · 1st · new · novice → First-year<br>anything else → Returning</div></div></div>
+          <div class="format-row"><div class="format-col"><div class="format-name">Preferred Type</div><div class="format-values">Regional Summit · Topic-based · Court<br>General · Historical · Press</div></div></div>
+          <div class="format-row"><div class="format-col"><div class="format-name">Preferred Topics</div><div class="format-values">Up to 3, separated by semicolons or commas<br>e.g. Law;History;Justice</div></div></div>
+          <div class="format-row"><div class="format-col"><div class="format-name">Preferred Size</div><div class="format-values">Small · Medium · Large</div></div></div>
+          <div class="format-row"><div class="format-col"><div class="format-name">Seniority Pick <span style="color:var(--text-3);font-weight:400">· optional</span></div><div class="format-values">Committee name or acronym (e.g. ICJ, Security Council)<br>strongly favored when present</div></div></div>
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);font-size:11.5px;color:var(--text-3);line-height:1.7">
+            Headers are case-insensitive and can be in any order. Common variants like "Full Name" or "Delegation" are recognized. Any column not listed above (email, phone, address, medical, etc.) is ignored and never stored. Importing replaces the current delegates and clears any assignment.
+          </div>
+        </div>
+      </div>
+
+      <div class="csv-preview-wrap" id="csv-preview-wrap" style="display:none">
+        <hr style="border:none;border-top:1px solid var(--border);margin:32px 0">
+        <div class="section-hd">
+          <h2 class="section-title">Preview</h2>
+          <div style="display:flex;gap:10px">
+            <button class="action-btn" onclick="cancelImport()">Cancel</button>
+            <button class="import-btn" id="confirm-import-btn" onclick="confirmImport()">Import Delegates</button>
+          </div>
+        </div>
+        <div class="preview-stats" id="preview-stats"></div>
+        <div id="preview-notes"></div>
+        <div class="tbl-wrap" id="preview-table"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════ COMMITTEES ═══════════ -->
+    <div id="tab-committees" class="tab-view">
+      <div class="page-header anim d1">
+        <div class="page-eyebrow">Step 2 · Committees</div>
+        <h1 class="page-title">Set Up Your Committees</h1>
+        <p class="page-sub">Match this list to your conference. <b style="color:var(--text)">Advanced</b> committees never receive first-years; <b style="color:var(--text)">Beginner</b> committees are favored for them. Topics are compared against what delegates wrote on the form, so use the same words. Your committee setup is remembered on this computer.</p>
+      </div>
+
+      <div class="cedit-bar anim d2" id="cedit-bar">
+        <button class="action-btn" onclick="addCommittee()">+ Add committee</button>
+        <span id="cedit-summary" style="font-size:12.5px;color:var(--text-2)"></span>
+        <span class="spacer"></span>
+        <button class="action-btn" onclick="exportCommittees()" title="Save this committee list to share with co-organizers or reuse next year">↓ Export setup</button>
+        <button class="action-btn" onclick="document.getElementById('cfg-input').click()">↑ Import setup</button>
+        <button class="action-btn" onclick="resetCommittees()">Reset to defaults</button>
+        <button class="primary-btn" id="cedit-save" onclick="saveCommittees()">Save changes <span class="dirty-dot">●</span></button>
+      </div>
+      <input type="file" id="cfg-input" accept=".json,application/json" style="display:none" onchange="importCommittees(event)">
+      <div id="cedit-errors"></div>
+      <div class="tbl-wrap anim d3">
+        <table class="cedit">
+          <thead><tr><th style="width:26%">Name</th><th>Type</th><th>Level</th><th>Size</th><th>Seats</th><th style="width:26%">Topics (separate with ;)</th><th></th></tr></thead>
+          <tbody id="cedit-body"></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- ═══════════ ASSIGNMENT ═══════════ -->
     <div id="tab-assignment" class="tab-view">
       <div class="assign-hero anim d1">
         <div class="assign-icon">⚡</div>
         <h2 class="assign-title">Run Committee Assignment</h2>
-        <p class="assign-desc">Matches all delegates to committees based on type preference, topic ranking, size preference, experience level, and school distribution constraints.</p>
+        <p class="assign-desc">Matches every delegate using their type, topic, and size preferences while keeping first-years out of advanced committees, steering returning delegates toward them, honoring seniority picks, and spreading schools evenly.</p>
         <button class="run-btn" id="run-btn" onclick="runAssignmentUI()">
           <span id="btn-icon">▶</span>
           <span id="btn-text">Run Assignment</span>
         </button>
       </div>
+
+      <div class="preflight" id="preflight"></div>
 
       <div class="prog-wrap" id="prog-wrap">
         <div class="prog-label" id="prog-label">Initializing…</div>
@@ -480,20 +666,25 @@
       <div class="res-cards" id="res-cards">
         <div class="res-card"><div class="res-num" id="r-placed" style="color:var(--green)">0</div><div class="res-lbl">Placed</div></div>
         <div class="res-card"><div class="res-num" id="r-flagged" style="color:var(--red)">0</div><div class="res-lbl">Flagged</div></div>
-        <div class="res-card"><div class="res-num" id="r-fill" style="color:var(--gold)">—</div><div class="res-lbl">Avg. Fill</div></div>
+        <div class="res-card"><div class="res-num" id="r-type" style="color:var(--gold)">—</div><div class="res-lbl">Got preferred type</div></div>
+        <div class="res-card"><div class="res-num" id="r-topic" style="color:var(--blue)">—</div><div class="res-lbl">Got ≥1 preferred topic</div></div>
       </div>
+      <div class="res-sub" id="res-sub" style="display:none"></div>
 
       <div id="assign-results" style="display:none">
         <div class="section-hd">
           <h2 class="section-title">Results by Committee</h2>
-          <button class="action-btn" onclick="exportCSV()">↓ Export CSV</button>
+          <div style="display:flex;gap:10px">
+            <button class="action-btn" onclick="exportCSV()">↓ CSV</button>
+            <button class="primary-btn" onclick="exportWorkbook()" title="One Excel file: summary, every delegate, a roster per committee, and a list per school">↓ Export rosters (Excel)</button>
+          </div>
         </div>
         <div class="tbl-wrap" id="assign-table"></div>
 
         <div id="flag-section" style="display:none;margin-top:32px">
           <div class="section-hd">
             <h2 class="section-title" style="color:var(--red)">⚑ Flagged Delegates</h2>
-            <span style="font-size:12px;color:var(--text-2)">Could not be matched — needs manual placement</span>
+            <span style="font-size:12px;color:var(--text-2)">No seat was left that they're allowed in. Place them by hand, or add seats on the Committees tab and re-run.</span>
           </div>
           <div class="tbl-wrap" id="flag-table"></div>
         </div>
@@ -505,23 +696,26 @@
       <div class="page-header anim d1">
         <div class="page-eyebrow">Delegates</div>
         <h1 class="page-title">All Registered Delegates</h1>
-        <p class="page-sub" id="delegates-sub">855 delegates across 35 schools · mock dataset</p>
+        <p class="page-sub" id="delegates-sub"></p>
       </div>
 
       <div class="search-row anim d2">
         <input class="srch" type="text" id="srch" placeholder="Search by name or school…" oninput="renderDelegates()">
         <select class="flt" id="flt-year" onchange="renderDelegates()">
-          <option value="">All Years</option>
-          <option value="first">First Year</option>
+          <option value="">All years</option>
+          <option value="first">First-year</option>
           <option value="returning">Returning</option>
         </select>
+        <select class="flt" id="flt-school" onchange="renderDelegates()"></select>
+        <select class="flt" id="flt-committee" onchange="renderDelegates()"></select>
         <select class="flt" id="flt-status" onchange="renderDelegates()">
-          <option value="">All Status</option>
+          <option value="">All status</option>
           <option value="assigned">Assigned</option>
+          <option value="hand">Placed by hand</option>
           <option value="flagged">Flagged</option>
           <option value="pending">Not yet assigned</option>
         </select>
-        <button class="action-btn" onclick="exportCSV()">↓ Export CSV</button>
+        <button class="action-btn" onclick="exportCSV()">↓ CSV</button>
       </div>
 
       <div class="tbl-wrap anim d3">
@@ -534,92 +728,7 @@
           </thead>
           <tbody id="delegate-tbody"></tbody>
         </table>
-      </div>
-    </div>
-
-    <!-- ═══════════ IMPORT ═══════════ -->
-    <div id="tab-import" class="tab-view">
-      <div class="page-header anim d1">
-        <div class="page-eyebrow">Import Data</div>
-        <h1 class="page-title">Import Delegate Data</h1>
-        <p class="page-sub">Upload a CSV file exported from your registration form to replace the mock dataset.</p>
-      </div>
-
-      <div class="import-layout anim d2">
-        <!-- Left: drop zone -->
-        <div>
-          <div class="import-zone" id="import-zone"
-               ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)"
-               onclick="document.getElementById('file-input').click()">
-            <div class="import-zone-icon">📄</div>
-            <div class="import-zone-title">Drop your CSV here</div>
-            <div class="import-zone-sub">or click to browse files<br>Accepts .csv files exported from any registration form</div>
-            <button class="import-btn" onclick="event.stopPropagation();document.getElementById('file-input').click()">Choose File</button>
-          </div>
-          <input type="file" id="file-input" class="import-file-input" accept=".csv" onchange="handleFileUpload(event)">
-
-          <button class="template-btn" onclick="downloadTemplate()">↓ Download CSV Template</button>
-        </div>
-
-        <!-- Right: column guide -->
-        <div class="import-info">
-          <div class="import-info-title">Expected CSV Columns</div>
-
-          <div class="format-row">
-            <div class="format-col">
-              <div class="format-name">Name</div>
-              <div class="format-values">Full name of delegate</div>
-            </div>
-          </div>
-          <div class="format-row">
-            <div class="format-col">
-              <div class="format-name">School</div>
-              <div class="format-values">School or institution name</div>
-            </div>
-          </div>
-          <div class="format-row">
-            <div class="format-col">
-              <div class="format-name">Year</div>
-              <div class="format-values">first · 1st · new · novice → First Year<br>anything else → Returning</div>
-            </div>
-          </div>
-          <div class="format-row">
-            <div class="format-col">
-              <div class="format-name">Preferred Type</div>
-              <div class="format-values">Regional Summit · Topic-based · Court<br>General · Historical · Press</div>
-            </div>
-          </div>
-          <div class="format-row">
-            <div class="format-col">
-              <div class="format-name">Preferred Topics</div>
-              <div class="format-values">Up to 3, separated by semicolons<br>e.g. Law;History;Justice</div>
-            </div>
-          </div>
-          <div class="format-row">
-            <div class="format-col">
-              <div class="format-name">Preferred Size</div>
-              <div class="format-values">Small · Medium · Large</div>
-            </div>
-          </div>
-
-          <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);font-size:11.5px;color:var(--text-3);line-height:1.7">
-            Column headers are case-insensitive. Extra columns are ignored. Importing resets any existing assignment — you'll need to re-run it.
-          </div>
-        </div>
-      </div>
-
-      <!-- Preview -->
-      <div class="csv-preview-wrap" id="csv-preview-wrap" style="display:none">
-        <hr style="border:none;border-top:1px solid var(--border);margin:32px 0">
-        <div class="section-hd">
-          <h2 class="section-title">Preview</h2>
-          <div style="display:flex;gap:10px">
-            <button class="action-btn" onclick="useSampleData()">← Use sample data instead</button>
-            <button class="import-btn" id="confirm-import-btn" onclick="confirmImport()">Import Delegates</button>
-          </div>
-        </div>
-        <div class="preview-stats" id="preview-stats"></div>
-        <div class="tbl-wrap" id="preview-table"></div>
+        <div class="table-foot" id="delegate-foot"></div>
       </div>
     </div>
 
@@ -632,37 +741,41 @@
   <div class="drawer-search">
     <input class="srch" type="text" id="drawer-srch" placeholder="Search delegates in this committee…" oninput="filterDrawerList()" style="width:100%">
   </div>
-  <div id="drawer-content"></div>
+  <div id="drawer-content" style="display:flex;flex-direction:column;flex:1;overflow:hidden"></div>
 </div>
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- Offline XLSX reader/writer + shared assignment engine (both load before the app script) -->
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="engine.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════
-//  STATIC DATA
+//  STATE
 // ═══════════════════════════════════════════════════════════
+// Committee rules live in engine.js (shared with test/verify.js).
+const E = window.ENGINE;
+const { TYPE_OPTS, SIZE_OPTS, TIER_OPTS } = E;
 
-const COMMITTEES = [
-  { id:1,  name:"African Summit",                   type:"Regional Summit", topics:["Healthcare","Corruption","Industrialization"], size:"Small",  cap:30  },
-  { id:2,  name:"Economic & Finance",               type:"Topic-based",     topics:["Economics","Trade","Banking"],                 size:"Medium", cap:60  },
-  { id:3,  name:"European Summit",                  type:"Regional Summit", topics:["Technology","Politics","Defense"],             size:"Small",  cap:30  },
-  { id:4,  name:"Group of 20",                      type:"General",         topics:["Energy","Economics","Taxation"],               size:"Small",  cap:30  },
-  { id:5,  name:"International Court of Justice",   type:"Court",           topics:["Law","International Relations"],              size:"Small",  cap:25  },
-  { id:6,  name:"International Security & Crime",   type:"Topic-based",     topics:["Security","Military","Law"],                  size:"Medium", cap:60  },
-  { id:7,  name:"Nation Building",                  type:"Historical",      topics:["History","Politics","Economics"],             size:"Large",  cap:120 },
-  { id:8,  name:"Press / Media",                    type:"Press",           topics:["Media","Journalism","Social Media"],          size:"Small",  cap:25  },
-  { id:9,  name:"Social, Humanitarian & Cultural",  type:"Topic-based",     topics:["Human Rights","Environment","Humanitarian"],  size:"Medium", cap:60  },
-  { id:10, name:"Asia-Pacific Summit",              type:"Regional Summit", topics:["Human Rights","Drug Policy","Environment"],   size:"Small",  cap:30  },
-  { id:11, name:"Environment & Technology",         type:"Topic-based",     topics:["Environment","Technology","Energy"],          size:"Medium", cap:60  },
-  { id:12, name:"General Assembly",                 type:"General",         topics:["Population","Security","Humanitarian"],       size:"Large",  cap:120 },
-  { id:13, name:"Historical Security Council",      type:"Historical",      topics:["History","Security","Human Rights"],          size:"Small",  cap:25  },
-  { id:14, name:"International Criminal Court",     type:"Court",           topics:["Law","History","Justice"],                   size:"Small",  cap:25  },
-  { id:15, name:"MENA Summit",                      type:"Regional Summit", topics:["Labor","Healthcare","Human Rights"],          size:"Small",  cap:30  },
-  { id:16, name:"Pan-American Summit",              type:"Regional Summit", topics:["Law","Environment","Politics"],               size:"Small",  cap:30  },
-  { id:17, name:"Security Council",                 type:"Topic-based",     topics:["Security","Technology","Military"],           size:"Small",  cap:25  },
-  { id:18, name:"World Health Organization",        type:"Topic-based",     topics:["Healthcare","Humanitarian","Environment"],    size:"Medium", cap:60  }
-];
+// Only non-personal settings (conference name, committee list) are kept in
+// browser storage. Delegate data lives in memory until you save a session file.
+const STORE_KEY = 'mun-sorter.settings.v1';
+function loadSettings() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; }
+}
+function saveSettings() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({ conference: CONFERENCE, committees: COMMITTEES, committeesTouched: !!settings.committeesTouched })); } catch {}
+}
+const clone = x => JSON.parse(JSON.stringify(x));
+
+const settings   = loadSettings();
+let CONFERENCE   = settings.conference || 'Model UN Conference';
+let COMMITTEES   = (Array.isArray(settings.committees) && !E.validateCommittees(settings.committees).length)
+  ? settings.committees : clone(E.COMMITTEES);
+let STUDENTS     = [];
+let IS_SAMPLE    = true;
+let result       = null;
 
 const TYPE_STYLE = {
   "Regional Summit": { bg:"rgba(72,150,245,0.13)",  fg:"#4896f5" },
@@ -673,196 +786,166 @@ const TYPE_STYLE = {
   "Press":           { bg:"rgba(236,72,150,0.13)",  fg:"#ec4896" }
 };
 
-// ─── Seeded PRNG ─────────────────────────────────────────
+// Everything shown in the page goes through esc(): names and schools come
+// straight from a spreadsheet and must never be interpreted as HTML.
+function esc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, ch =>
+    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+}
+const cById = id => COMMITTEES.find(c => c.id === id);
+
+// ═══════════════════════════════════════════════════════════
+//  SAMPLE DATA (seeded, fake)
+// ═══════════════════════════════════════════════════════════
 function mkRand(seed) {
   let s = seed >>> 0;
   return () => { s = Math.imul(1664525, s) + 1013904223 >>> 0; return s / 0x100000000; };
 }
-
 const FNAME = ["Alex","Sam","Jordan","Taylor","Morgan","Casey","Riley","Avery","Quinn","Cameron",
   "Skylar","Dana","Jamie","Reese","Logan","Blake","Charlie","Emery","Finley","Hayden",
   "Aaron","Bella","Carlos","Diana","Ethan","Fiona","Gabriel","Hannah","Ivan","Julia",
   "Kevin","Luna","Marco","Nina","Oscar","Priya","Rafael","Sofia","Tomás","Uma",
-  "Victor","Wendy","Xander","Yasmine","Zoe","Aiden","Brianna","Connor","Dara","Elena",
-  "Felix","Gracie","Hugo","Ingrid","Jasper","Kira","Liam","Maya","Noah","Olivia"];
-
+  "Victor","Wendy","Xander","Yasmine","Zoe","Aiden","Brianna","Connor","Dara","Elena"];
 const LNAME = ["Smith","Johnson","Chen","Rodriguez","Kim","Patel","Martinez","Williams","Brown","Garcia",
   "Liu","Taylor","Anderson","Thomas","Hernandez","Moore","Jackson","Thompson","White","Lopez",
   "Lee","Gonzalez","Harris","Clark","Lewis","Robinson","Walker","Hall","Allen","Young",
-  "King","Wright","Scott","Torres","Nguyen","Hill","Flores","Green","Adams","Nelson",
-  "Baker","Carter","Mitchell","Perez","Roberts","Turner","Phillips","Campbell","Parker","Evans",
-  "Edwards","Collins","Stewart","Sanchez","Morris","Rogers","Reed","Cook","Morgan","Bell"];
-
+  "King","Wright","Scott","Torres","Nguyen","Hill","Flores","Green","Adams","Nelson"];
 const SCHOOLS = [
   "Lincoln High School","Jefferson Academy","Roosevelt Preparatory","Washington Academy","Madison High",
   "Franklin Institute","Hamilton School","Monroe Academy","Adams Preparatory","Jackson High",
   "Kennedy International","Westbrook Academy","Eastside High School","Northgate School","Southfield Prep",
   "Riverside Academy","Lakewood High","Hillcrest School","Sunnyvale Preparatory","Greenwood Academy",
-  "Clearwater High","Oakridge School","Pinecrest Academy","Cedarville High","Elmwood Prep",
-  "Maplewood Academy","Birchwood High","Willowbrook School","Ashford Preparatory","Stonegate Academy",
-  "Harborview High","Bayside School","Cliffside Prep","Ridgecrest Academy","Valleyview High"
-];
-
+  "Clearwater High","Oakridge School","Pinecrest Academy","Cedarville High","Elmwood Prep"];
 const ALL_TOPICS = ["Healthcare","Economics","Environment","Security","Law","Human Rights",
   "Technology","History","Media","Labor","Energy","Defense","Politics","Banking",
   "Trade","Humanitarian","Justice","Social Media","Industrialization","Corruption","Drug Policy"];
 
-const TYPE_OPTS = ["Regional Summit","Topic-based","Court","General","Historical","Press"];
-const SIZE_OPTS = ["Small","Medium","Large"];
-
 function pick(arr, r)  { return arr[Math.floor(r() * arr.length)]; }
 function shuffle(a, r) { const b=[...a]; for(let i=b.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; }
 
-function genStudents(n = 855) {
+function genStudents(n = 820) {
   const r = mkRand(7);
-  return Array.from({ length: n }, (_, i) => ({
-    id: i + 1,
-    name: `${pick(FNAME,r)} ${pick(LNAME,r)}`,
-    school: pick(SCHOOLS, r),
-    year: r() < 0.38 ? 'first' : 'returning',
-    prefType: pick(TYPE_OPTS, r),
-    prefTopics: shuffle([...ALL_TOPICS], r).slice(0, 3),
-    prefSize: pick(SIZE_OPTS, r),
-    assigned: null, flagged: false
-  }));
+  return Array.from({ length: n }, (_, i) => {
+    const year = r() < 0.38 ? 'first' : 'returning';
+    const seniorityPick = (year === 'returning' && r() < 0.06) ? pick(COMMITTEES, r).id : null;
+    return {
+      id: i + 1,
+      name: `${pick(FNAME,r)} ${pick(LNAME,r)}`,
+      school: pick(SCHOOLS, r),
+      year,
+      prefType: pick(TYPE_OPTS, r),
+      prefTopics: shuffle([...ALL_TOPICS], r).slice(0, 3),
+      prefSize: pick(SIZE_OPTS, r),
+      seniorityPick,
+      assigned: null, flagged: false, locked: false
+    };
+  });
 }
 
-let STUDENTS = genStudents(855);
-
 // ═══════════════════════════════════════════════════════════
-//  ALGORITHM
+//  RENDERING
 // ═══════════════════════════════════════════════════════════
-
-// School spread is a SOFT penalty, not a hard cap.
-// Only hard constraint: committee must have a free seat.
-// Flagging only happens when all 845 seats are filled (10 true overflow with 855 students).
-function scoreMatch(student, committee, fills, schoolCnts, schoolSizes, total) {
-  if (fills[committee.id] >= committee.cap) return -Infinity; // hard: no seats
-
-  let s = 0;
-  if (student.prefType === committee.type) s += 40; else s -= 8;
-  s += student.prefTopics.filter(t => committee.topics.includes(t)).length * 22;
-  if (student.prefSize === committee.size) s += 14;
-  s -= (fills[committee.id] / committee.cap) * 12; // prefer less-full committees
-
-  // Soft school spread: penalise going over proportional fair share
-  // Fair share = (schoolSize / totalStudents) * committeeCapacity
-  // e.g. school of 100 in 120-seat committee → fairShare ≈ 14
-  const count = schoolCnts[committee.id][student.school] || 0;
-  if (count > 0) {
-    const fairShare = Math.max(1, (schoolSizes[student.school] / total) * committee.cap);
-    if (count >= fairShare * 2) s -= 60;      // well over — strong push away
-    else if (count >= fairShare) s -= 25;     // over fair share — mild push away
-  }
-
-  return s;
-}
-
-function runAlgorithm() {
-  STUDENTS.forEach(s => { s.assigned = null; s.flagged = false; });
-
-  const fills      = Object.fromEntries(COMMITTEES.map(c => [c.id, 0]));
-  const schoolCnts = Object.fromEntries(COMMITTEES.map(c => [c.id, {}]));
-
-  // Pre-compute school sizes once
-  const schoolSizes = {};
-  STUDENTS.forEach(s => { schoolSizes[s.school] = (schoolSizes[s.school] || 0) + 1; });
-  const total = STUDENTS.length;
-
-  // Sort by preference specificity: students wanting rarer committee types go first
-  // so they claim those limited spots before everyone else does
-  const typeCount = {};
-  COMMITTEES.forEach(c => { typeCount[c.type] = (typeCount[c.type] || 0) + 1; });
-  const sorted = [...STUDENTS].sort((a, b) =>
-    (typeCount[a.prefType] || 0) - (typeCount[b.prefType] || 0)
-  );
-
-  for (const student of sorted) {
-    let best = -Infinity, bestC = null;
-    for (const c of COMMITTEES) {
-      const s = scoreMatch(student, c, fills, schoolCnts, schoolSizes, total);
-      if (s > best) { best = s; bestC = c; }
-    }
-    // bestC is null only when every committee is at capacity (true seat overflow)
-    if (bestC) {
-      student.assigned = bestC.id;
-      fills[bestC.id]++;
-      schoolCnts[bestC.id][student.school] = (schoolCnts[bestC.id][student.school] || 0) + 1;
-    } else {
-      student.flagged = true;
-    }
-  }
-
-  return { fills };
-}
-
-function recompute() {
-  if (!result) return;
-  COMMITTEES.forEach(c => { result.fills[c.id] = STUDENTS.filter(s => s.assigned === c.id).length; });
-}
-
-let result = null;
-
-// ═══════════════════════════════════════════════════════════
-//  UI HELPERS
-// ═══════════════════════════════════════════════════════════
-
 const delay = ms => new Promise(r => setTimeout(r, ms));
+const totalSeats = () => COMMITTEES.reduce((a, c) => a + c.cap, 0);
+const fillOf = id => STUDENTS.filter(s => s.assigned === id).length;
 
 function typePill(type, small = false) {
   const st = TYPE_STYLE[type] || { bg:'rgba(120,120,120,0.1)', fg:'#888' };
-  return `<span class="type-pill" style="background:${st.bg};color:${st.fg};${small?'font-size:9.5px;padding:2px 7px':''}">${type}</span>`;
+  return `<span class="type-pill" style="background:${st.bg};color:${st.fg};${small?'font-size:9.5px;padding:2px 7px':''}">${esc(type)}</span>`;
+}
+const yearPill = s => `<span class="pill ${s.year==='first'?'pill-first':'pill-ret'}">${s.year==='first'?'First':'Returning'}</span>`;
+
+function renderHeader() {
+  document.getElementById('logo-name').textContent = CONFERENCE;
+  document.getElementById('logo-mark').textContent = (CONFERENCE.trim()[0] || 'M').toUpperCase();
+  document.getElementById('conf-tag').textContent = '✎ Rename';
+  document.title = `${CONFERENCE} — Committee Sorter`;
 }
 
-// ─── Grid ────────────────────────────────────────────────
 function renderGrid() {
   document.getElementById('committees-grid').innerHTML = COMMITTEES.map(c => {
-    const cnt = result ? (result.fills[c.id] || 0) : 0;
+    const cnt = result ? fillOf(c.id) : 0;
     const pct = Math.round(cnt / c.cap * 100);
-    const barClr = pct > 85 ? 'var(--amber)' : pct > 55 ? 'var(--blue)' : 'var(--green)';
+    const barClr = pct > 100 ? 'var(--red)' : pct > 85 ? 'var(--amber)' : pct > 55 ? 'var(--blue)' : 'var(--green)';
     return `
     <div class="c-card" onclick="openDrawer(${c.id})">
       <div class="c-card-top">
         <div>
-          <div class="c-name">${c.name}</div>
-          <div class="size-tag">${c.size} · ${c.cap} seats</div>
+          <div class="c-name">${esc(c.name)}</div>
+          <div class="size-tag">${esc(c.size)} · ${c.cap} seats · ${esc(c.tier)}</div>
         </div>
         ${typePill(c.type)}
       </div>
-      <div class="c-topics">${c.topics.map(t=>`<span class="topic-chip">${t}</span>`).join('')}</div>
+      <div class="c-topics">${c.topics.map(t=>`<span class="topic-chip">${esc(t)}</span>`).join('')}</div>
       <div class="c-bar-row">
         <div class="bar-track"><div class="bar-fill" id="bf-${c.id}" style="background:${barClr}"></div></div>
-        <span class="bar-label" id="bl-${c.id}">${cnt}/${c.cap}</span>
+        <span class="bar-label">${cnt}/${c.cap}</span>
       </div>
       <span class="c-view-hint">View delegates →</span>
     </div>`;
   }).join('');
-
-  requestAnimationFrame(() => {
-    COMMITTEES.forEach(c => {
-      const cnt = result ? (result.fills[c.id] || 0) : 0;
-      const el  = document.getElementById(`bf-${c.id}`);
-      if (el) el.style.width = (cnt / c.cap * 100) + '%';
-    });
-  });
+  requestAnimationFrame(() => COMMITTEES.forEach(c => {
+    const el = document.getElementById(`bf-${c.id}`);
+    if (el) el.style.width = Math.min(100, (result ? fillOf(c.id) : 0) / c.cap * 100) + '%';
+  }));
 }
 
 function renderLegend() {
   document.getElementById('legend').innerHTML = Object.entries(TYPE_STYLE)
-    .map(([t,s]) => `<span class="legend-item" style="background:${s.bg};color:${s.fg}">${t}</span>`)
-    .join('');
+    .map(([t,s]) => `<span class="legend-item" style="background:${s.bg};color:${s.fg}">${t}</span>`).join('');
 }
 
 function updateStats() {
   const placed  = STUDENTS.filter(s => s.assigned).length;
   const flagged = STUDENTS.filter(s => s.flagged).length;
-  const totalCap = COMMITTEES.reduce((a,c) => a + c.cap, 0);
+  const seats   = totalSeats();
+  const schools = new Set(STUDENTS.map(s => s.school)).size;
+  const types   = new Set(COMMITTEES.map(c => c.type)).size;
+
+  document.getElementById('d-total').textContent      = STUDENTS.length;
+  document.getElementById('d-total-hint').textContent = `${schools} schools · ${IS_SAMPLE ? 'sample data' : 'imported'}`;
+  document.getElementById('d-committees').textContent = COMMITTEES.length;
+  const gap = STUDENTS.length - seats;
+  document.getElementById('d-seats-hint').innerHTML = `${seats} seats` +
+    (gap > 0 ? ` · <span style="color:var(--amber)">${gap} short</span>` : '');
   document.getElementById('d-assigned').textContent      = result ? placed : '—';
   document.getElementById('d-assigned-hint').textContent = result ? `${Math.round(placed/STUDENTS.length*100)}% of delegates` : 'Run assignment first';
   document.getElementById('d-flagged').textContent       = result ? flagged : '—';
+  document.getElementById('dash-sub').textContent =
+    `${COMMITTEES.length} committees across ${types} types · click any committee to view its delegates`;
+  document.getElementById('delegates-sub').textContent =
+    `${STUDENTS.length} delegates across ${schools} schools · ${IS_SAMPLE ? 'sample data' : 'imported data'}`;
+  document.getElementById('sample-banner').style.display = IS_SAMPLE ? 'flex' : 'none';
+
+  document.getElementById('step-import').classList.toggle('done', !IS_SAMPLE);
+  document.getElementById('step-committees').classList.toggle('done', !!settings.committeesTouched);
+  document.getElementById('step-assign').classList.toggle('done', !!result);
 }
 
-// ─── Assignment run ──────────────────────────────────────
+function refreshAll() {
+  renderHeader();
+  updateStats();
+  renderGrid();
+  renderPreflight();
+  if (result) { renderResults(); } else { hideResults(); }
+  if (document.getElementById('tab-students').classList.contains('active')) renderDelegates();
+  if (drawerCommitteeId != null) renderDrawerContent();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ASSIGNMENT
+// ═══════════════════════════════════════════════════════════
+function renderPreflight() {
+  const box = document.getElementById('preflight');
+  const notes = E.preflight(STUDENTS, COMMITTEES);
+  const locked = STUDENTS.filter(s => s.locked).length;
+  if (locked) notes.push({ level:'info', msg:`${locked} delegate${locked!==1?'s were':' was'} placed by hand and will stay put when you re-run. <button class="link-btn" onclick="clearHandPlacements()">Release them</button>`, html:true });
+  if (!notes.length) notes.push({ level:'ok', msg:`Ready: ${STUDENTS.length} delegates, ${totalSeats()} seats across ${COMMITTEES.length} committees.` });
+  const ico = { error:'✕', warn:'⚠', info:'ℹ', ok:'✓' };
+  box.innerHTML = notes.map(n => `<div class="notice ${n.level}"><span class="notice-ico">${ico[n.level]}</span><span>${n.html ? n.msg : esc(n.msg)}</span></div>`).join('');
+  document.getElementById('run-btn').disabled = notes.some(n => n.level === 'error') || !STUDENTS.length;
+}
+
 async function runAssignmentUI() {
   const btn = document.getElementById('run-btn');
   btn.disabled = true;
@@ -871,68 +954,89 @@ async function runAssignmentUI() {
   document.getElementById('prog-wrap').style.display = 'block';
 
   const steps = [
-    [12,'Loading delegate preferences…'],
-    [28,'Scoring committee compatibility…'],
-    [46,'Ranking by placement difficulty…'],
-    [62,'Applying school distribution limits…'],
-    [78,'Greedy assignment pass…'],
-    [92,'Flagging unresolvable delegates…'],
+    [20,'Scoring committee compatibility…'],
+    [45,'Seating seniority picks…'],
+    [70,'Spreading schools across rooms…'],
+    [90,'Flagging anyone without a seat…'],
     [100,'Complete!']
   ];
-
   const fill = document.getElementById('prog-fill');
   const lbl  = document.getElementById('prog-label');
   for (const [p, msg] of steps) {
-    await delay(200 + Math.random() * 180);
+    await delay(140);
     fill.style.width = p + '%';
     lbl.textContent  = msg;
   }
 
-  result = runAlgorithm();
-  await delay(280);
+  result = E.runAssignment(STUDENTS, COMMITTEES);
+  await delay(150);
 
-  const placed   = STUDENTS.filter(s => s.assigned).length;
-  const flagged  = STUDENTS.filter(s => s.flagged).length;
-  const totalCap = COMMITTEES.reduce((a,c) => a + c.cap, 0);
-  const avgFill  = Math.round(placed / totalCap * 100);
-
-  document.getElementById('r-placed').textContent  = placed;
-  document.getElementById('r-flagged').textContent = flagged;
-  document.getElementById('r-fill').textContent    = avgFill + '%';
-  document.getElementById('res-cards').style.display = 'grid';
-
-  updateStats();
-  renderAssignTable();
-  renderFlagTable();
-  document.getElementById('assign-results').style.display = 'block';
-  renderGrid();
-
+  refreshAll();
   btn.disabled = false;
   document.getElementById('btn-icon').textContent = '✓';
   document.getElementById('btn-text').textContent = 'Re-run Assignment';
-  lbl.textContent = `Done — ${placed} placed · ${flagged} flagged`;
-  showToast(`Assignment complete · ${placed} delegates placed`);
+  const m = E.metrics(STUDENTS, COMMITTEES);
+  lbl.textContent = `Done: ${m.placed} placed · ${m.flagged} flagged`;
+  showToast(`Assignment complete · ${m.placed} delegates placed`);
+}
+
+function hideResults() {
+  ['assign-results','res-cards','res-sub','prog-wrap'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('btn-icon').textContent = '▶';
+  document.getElementById('btn-text').textContent = 'Run Assignment';
+}
+
+function renderResults() {
+  const m = E.metrics(STUDENTS, COMMITTEES);
+  document.getElementById('r-placed').textContent  = m.placed;
+  document.getElementById('r-flagged').textContent = m.flagged;
+  document.getElementById('r-type').textContent    = m.typeMatch + '%';
+  document.getElementById('r-topic').textContent   = m.topicMatch + '%';
+  document.getElementById('res-cards').style.display = 'grid';
+  const sub = [`${m.sizeMatch}% got their preferred size`];
+  if (m.picksTotal) sub.push(`${m.picksHonored} of ${m.picksTotal} seniority picks honored`);
+  if (m.maxSchoolShare) sub.push(`largest single-school share of a room: ${m.maxSchoolShare.pct}% (${esc(m.maxSchoolShare.school)} in ${esc(m.maxSchoolShare.committee)}, ${m.maxSchoolShare.n} of ${m.maxSchoolShare.of})`);
+  const subEl = document.getElementById('res-sub');
+  subEl.innerHTML = sub.join(' · ');
+  subEl.style.display = 'block';
+  renderAssignTable();
+  renderFlagTable();
+  document.getElementById('assign-results').style.display = 'block';
 }
 
 function renderAssignTable() {
-  let html = `<table><thead><tr><th>Committee</th><th>Type</th><th>Size</th><th>Assigned</th><th>Cap.</th><th>Fill</th><th>Schools</th></tr></thead><tbody>`;
+  let html = `<table><thead><tr><th>Committee</th><th>Type</th><th>Level</th><th>Assigned</th><th>Seats</th><th>Fill</th><th>First / Ret.</th><th>Schools</th></tr></thead><tbody>`;
   COMMITTEES.forEach(c => {
-    const cnt    = result.fills[c.id] || 0;
+    const here   = STUDENTS.filter(s => s.assigned === c.id);
+    const cnt    = here.length;
     const pct    = Math.round(cnt / c.cap * 100);
-    const pctClr = pct > 85 ? 'var(--amber)' : 'var(--green)';
-    const schools = new Set(STUDENTS.filter(s => s.assigned === c.id).map(s => s.school)).size;
+    const pctClr = pct > 100 ? 'var(--red)' : pct > 85 ? 'var(--amber)' : 'var(--green)';
+    const firsts = here.filter(s => s.year === 'first').length;
+    const schools = new Set(here.map(s => s.school)).size;
     html += `<tr style="cursor:pointer" onclick="openDrawer(${c.id})">
-      <td style="font-weight:500">${c.name}</td>
+      <td style="font-weight:500">${esc(c.name)}</td>
       <td>${typePill(c.type, true)}</td>
-      <td style="color:var(--text-2);font-size:12px">${c.size}</td>
+      <td style="color:var(--text-2);font-size:12px">${esc(c.tier)}</td>
       <td class="mono">${cnt}</td>
       <td class="mono" style="color:var(--text-2)">${c.cap}</td>
       <td><span class="mono" style="color:${pctClr}">${pct}%</span></td>
+      <td class="mono" style="color:var(--text-2);font-size:12px">${firsts} / ${cnt - firsts}</td>
       <td style="color:var(--text-2);font-size:12px">${schools}</td>
     </tr>`;
   });
-  html += '</tbody></table>';
-  document.getElementById('assign-table').innerHTML = html;
+  document.getElementById('assign-table').innerHTML = html + '</tbody></table>';
+}
+
+// Options for a "move/place into committee" dropdown. Shows fill, and marks
+// committees a first-year isn't allowed into.
+function committeeOptions(student, excludeId) {
+  return COMMITTEES.filter(x => x.id !== excludeId).map(x => {
+    const n = fillOf(x.id);
+    const notes = [];
+    if (n >= x.cap) notes.push('full');
+    if (student.year === 'first' && x.tier === 'Advanced') notes.push('advanced');
+    return `<option value="${x.id}">${esc(x.name)} (${n}/${x.cap})${notes.length ? ' · ' + notes.join(', ') : ''}</option>`;
+  }).join('');
 }
 
 function renderFlagTable() {
@@ -940,63 +1044,118 @@ function renderFlagTable() {
   const sec = document.getElementById('flag-section');
   if (!flagged.length) { sec.style.display = 'none'; return; }
   sec.style.display = 'block';
-  let html = `<table><thead><tr><th>#</th><th>Name</th><th>School</th><th>Year</th><th>Pref. Type</th><th>Pref. Topics</th></tr></thead><tbody>`;
+  let html = `<table><thead><tr><th>#</th><th>Name</th><th>School</th><th>Year</th><th>Pref. Type</th><th>Pref. Topics</th><th>Place in</th></tr></thead><tbody>`;
   flagged.forEach(s => {
     html += `<tr><td class="mono" style="color:var(--text-3);font-size:12px">${s.id}</td>
-      <td style="font-weight:500">${s.name}</td>
-      <td style="color:var(--text-2);font-size:12.5px">${s.school}</td>
-      <td><span class="pill ${s.year==='first'?'pill-first':'pill-ret'}">${s.year==='first'?'First':'Returning'}</span></td>
+      <td style="font-weight:500">${esc(s.name)}</td>
+      <td style="color:var(--text-2);font-size:12.5px">${esc(s.school)}</td>
+      <td>${yearPill(s)}</td>
       <td>${typePill(s.prefType, true)}</td>
-      <td style="color:var(--text-2);font-size:12px">${s.prefTopics.join(', ')}</td></tr>`;
+      <td style="color:var(--text-2);font-size:12px">${esc(s.prefTopics.join(', '))}</td>
+      <td><div class="place-ui">
+        <select class="flt" id="placesel-${s.id}"><option value="">Choose committee…</option>${committeeOptions(s, null)}</select>
+        <button class="move-confirm" onclick="placeStudent(${s.id}, document.getElementById('placesel-${s.id}').value)">Place</button>
+      </div></td></tr>`;
   });
-  html += '</tbody></table>';
-  document.getElementById('flag-table').innerHTML = html;
+  document.getElementById('flag-table').innerHTML = html + '</tbody></table>';
 }
 
-// ─── Delegates table ─────────────────────────────────────
+// Manual placement. Hand-placed delegates are locked: re-running keeps them.
+function placeStudent(studentId, value) {
+  const student = STUDENTS.find(s => s.id === studentId);
+  if (!student || !value) { showToast('Choose a committee first'); return; }
+  if (value === 'unassign') {
+    student.assigned = null; student.flagged = true; student.locked = false;
+    showToast(`${student.name} unassigned and flagged for review`);
+  } else {
+    const to = cById(parseInt(value, 10));
+    if (!to) return;
+    const warn = [];
+    if (student.year === 'first' && to.tier === 'Advanced') warn.push(`${to.name} is an advanced committee and ${student.name} is a first-year.`);
+    if (fillOf(to.id) >= to.cap) warn.push(`${to.name} is already full (${fillOf(to.id)}/${to.cap}). This puts it over capacity.`);
+    if (warn.length && !confirm(warn.join('\n') + '\n\nPlace them anyway?')) return;
+    student.assigned = to.id; student.flagged = false; student.locked = true;
+    if (!result) result = { fills: {} };
+    showToast(`${student.name} → ${to.name}`);
+  }
+  refreshAll();
+}
+
+function clearHandPlacements() {
+  STUDENTS.forEach(s => { s.locked = false; });
+  renderPreflight();
+  showToast('Hand placements released. Re-run to re-sort them.');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DELEGATES TABLE
+// ═══════════════════════════════════════════════════════════
+const DELEGATE_ROWS = 300;
+function fillFilterOptions() {
+  const schoolSel = document.getElementById('flt-school');
+  const commSel   = document.getElementById('flt-committee');
+  const keepS = schoolSel.value, keepC = commSel.value;
+  const schools = [...new Set(STUDENTS.map(s => s.school))].sort((a, b) => a.localeCompare(b));
+  schoolSel.innerHTML = `<option value="">All schools</option>` + schools.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  commSel.innerHTML = `<option value="">All committees</option>` + COMMITTEES.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  schoolSel.value = schools.includes(keepS) ? keepS : '';
+  commSel.value = cById(parseInt(keepC, 10)) ? keepC : '';
+}
+
 function renderDelegates() {
+  fillFilterOptions();
   const q      = document.getElementById('srch').value.toLowerCase();
   const yr     = document.getElementById('flt-year').value;
+  const school = document.getElementById('flt-school').value;
+  const comm   = parseInt(document.getElementById('flt-committee').value, 10);
   const status = document.getElementById('flt-status').value;
 
   const filtered = STUDENTS.filter(s => {
     if (q && !s.name.toLowerCase().includes(q) && !s.school.toLowerCase().includes(q)) return false;
     if (yr && s.year !== yr) return false;
+    if (school && s.school !== school) return false;
+    if (comm && s.assigned !== comm) return false;
     if (status === 'assigned' && !s.assigned) return false;
+    if (status === 'hand'     && !s.locked)   return false;
     if (status === 'flagged'  && !s.flagged)  return false;
     if (status === 'pending'  && (s.assigned || s.flagged)) return false;
     return true;
   });
 
   const tbody = document.getElementById('delegate-tbody');
+  const foot  = document.getElementById('delegate-foot');
   if (!filtered.length) {
     tbody.innerHTML = `<tr><td colspan="8"><div class="empty">No delegates match this filter</div></td></tr>`;
+    foot.textContent = '';
     return;
   }
 
-  tbody.innerHTML = filtered.slice(0, 120).map(s => {
-    const committee = s.assigned ? COMMITTEES.find(c => c.id === s.assigned) : null;
-    let assignedCell;
-    if (s.flagged)    assignedCell = `<span class="pill pill-flag">⚑ Review needed</span>`;
-    else if (committee) assignedCell = `<span style="font-size:12.5px;color:var(--text-2)">${committee.name}</span>`;
-    else              assignedCell = `<span class="pill pill-pending">Pending</span>`;
+  tbody.innerHTML = filtered.slice(0, DELEGATE_ROWS).map(s => {
+    const c = cById(s.assigned);
+    let cell;
+    if (s.flagged)  cell = `<span class="pill pill-flag">⚑ Needs a seat</span>`;
+    else if (c)     cell = `<span style="font-size:12.5px;color:var(--text)">${esc(c.name)}</span>${s.locked ? ' <span class="pill pill-hand">Hand-placed</span>' : ''}<div class="reason">${esc(E.explainPlacement(s, COMMITTEES))}</div>`;
+    else            cell = `<span class="pill pill-pending">Pending</span>`;
+    const pickC = cById(s.seniorityPick);
     return `<tr>
       <td class="mono" style="color:var(--text-3);font-size:11.5px">${s.id}</td>
-      <td style="font-weight:500">${s.name}</td>
-      <td style="color:var(--text-2);font-size:12.5px">${s.school}</td>
-      <td><span class="pill ${s.year==='first'?'pill-first':'pill-ret'}">${s.year==='first'?'First':'Returning'}</span></td>
+      <td style="font-weight:500">${esc(s.name)}${pickC ? `<div class="reason">★ pick: ${esc(pickC.name)}</div>` : ''}</td>
+      <td style="color:var(--text-2);font-size:12.5px">${esc(s.school)}</td>
+      <td>${yearPill(s)}</td>
       <td>${typePill(s.prefType, true)}</td>
-      <td style="color:var(--text-2);font-size:12px">${s.prefTopics.join(', ')}</td>
-      <td style="color:var(--text-3);font-size:12px">${s.prefSize}</td>
-      <td>${assignedCell}</td>
+      <td style="color:var(--text-2);font-size:12px">${esc(s.prefTopics.join(', '))}</td>
+      <td style="color:var(--text-3);font-size:12px">${esc(s.prefSize)}</td>
+      <td>${cell}</td>
     </tr>`;
   }).join('');
+  foot.textContent = filtered.length > DELEGATE_ROWS
+    ? `Showing ${DELEGATE_ROWS} of ${filtered.length}. Search or filter to narrow down, or export to see everyone.`
+    : `${filtered.length} delegate${filtered.length !== 1 ? 's' : ''}`;
 }
 
 // ═══════════════════════════════════════════════════════════
-//  DRAWER
+//  DRAWER (one committee)
 // ═══════════════════════════════════════════════════════════
-
 let drawerCommitteeId = null;
 
 function openDrawer(committeeId) {
@@ -1021,356 +1180,494 @@ function filterDrawerList() {
 }
 
 function renderDrawerContent() {
-  const c = COMMITTEES.find(x => x.id === drawerCommitteeId);
-  if (!c) return;
-  const st        = TYPE_STYLE[c.type];
-  const delegates = result ? STUDENTS.filter(s => s.assigned === drawerCommitteeId) : [];
+  const c = cById(drawerCommitteeId);
+  if (!c) { closeDrawer(); return; }
+  const delegates = result ? STUDENTS.filter(s => s.assigned === c.id).sort((a, b) => a.school.localeCompare(b.school) || a.name.localeCompare(b.name)) : [];
   const cnt       = delegates.length;
   const pct       = Math.round(cnt / c.cap * 100);
   const schoolSet = new Set(delegates.map(d => d.school));
-  const barClr    = pct > 85 ? 'var(--amber)' : pct > 55 ? 'var(--blue)' : 'var(--green)';
-  const otherComms = COMMITTEES.filter(x => x.id !== drawerCommitteeId);
+  const firsts    = delegates.filter(d => d.year === 'first').length;
+  const barClr    = pct > 100 ? 'var(--red)' : pct > 85 ? 'var(--amber)' : pct > 55 ? 'var(--blue)' : 'var(--green)';
 
   let html = `
     <div class="drawer-hd">
       <div class="drawer-hd-top">
         <div>
           <div>${typePill(c.type)}</div>
-          <div class="drawer-name">${c.name}</div>
-          <div class="drawer-meta">${c.size} · ${c.cap} seats · ${schoolSet.size} schools</div>
+          <div class="drawer-name">${esc(c.name)}</div>
+          <div class="drawer-meta">${esc(c.size)} · ${c.cap} seats · ${esc(c.tier)} · ${schoolSet.size} schools${cnt ? ` · ${firsts} first-year / ${cnt - firsts} returning` : ''}</div>
         </div>
         <button class="drawer-close" onclick="closeDrawer()">✕</button>
       </div>
       <div class="bar-track" style="margin-top:14px;height:4px">
-        <div class="bar-fill" style="width:${pct}%;background:${barClr}"></div>
+        <div class="bar-fill" style="width:${Math.min(100,pct)}%;background:${barClr}"></div>
       </div>
       <div class="drawer-bar-labels"><span>${cnt} assigned</span><span>${pct}% full</span></div>
+      ${cnt ? `<button class="action-btn" style="margin-top:12px;padding:7px 14px;font-size:12px" onclick="exportCommitteeRoster(${c.id})">↓ Roster for the chair (CSV)</button>` : ''}
     </div>`;
 
+  html += '<div class="drawer-body">';
   if (!result) {
     html += `<div class="drawer-empty">Run assignment first to see delegates.</div>`;
-  } else if (!delegates.length) {
+  } else if (!cnt) {
     html += `<div class="drawer-empty">No delegates assigned to this committee.</div>`;
   } else {
     html += `<div class="drawer-count">${cnt} delegate${cnt !== 1 ? 's' : ''}</div>`;
-    html += delegates.map(s => {
-      const opts = otherComms.map(x =>
-        `<option value="${x.id}">${x.name} (${result.fills[x.id]}/${x.cap})</option>`
-      ).join('');
-      return `
+    html += delegates.map(s => `
       <div class="d-row" id="drow-${s.id}">
         <div class="d-row-top">
           <div>
-            <div class="d-name">${s.name}</div>
-            <div class="d-school">${s.school}</div>
+            <div class="d-name">${esc(s.name)}</div>
+            <div class="d-school">${esc(s.school)}</div>
+            <div class="reason">${esc(E.explainPlacement(s, COMMITTEES))}</div>
           </div>
           <div class="d-row-actions">
-            <span class="pill ${s.year==='first'?'pill-first':'pill-ret'}">${s.year==='first'?'First':'Returning'}</span>
+            ${s.seniorityPick === c.id ? `<span class="pill" style="background:var(--gold-dim);color:var(--gold-lt)">★ Pick</span>` : ''}
+            ${s.locked ? `<span class="pill pill-hand">Hand-placed</span>` : ''}
+            ${yearPill(s)}
             <button class="move-btn" id="movebtn-${s.id}" onclick="showMoveUI(${s.id})">Move →</button>
           </div>
         </div>
-        <div class="d-topics">${s.prefTopics.map(t=>`<span class="topic-chip">${t}</span>`).join('')}</div>
+        <div class="d-topics">${s.prefTopics.map(t=>`<span class="topic-chip">${esc(t)}</span>`).join('')}</div>
         <div class="move-ui" id="moveui-${s.id}">
           <select class="flt" id="movesel-${s.id}" style="flex:1;font-size:12px;padding:7px 10px">
             <option value="">Select committee…</option>
-            <option value="unassign">— Unassign delegate —</option>
-            ${opts}
+            <option value="unassign">Unassign (flag for review)</option>
+            ${committeeOptions(s, c.id)}
           </select>
-          <button class="move-confirm" onclick="confirmMove(${s.id})">Move</button>
+          <button class="move-confirm" onclick="placeStudent(${s.id}, document.getElementById('movesel-${s.id}').value)">Move</button>
           <button class="move-cancel" onclick="cancelMove(${s.id})">✕</button>
         </div>
-      </div>`;
-    }).join('');
+      </div>`).join('');
   }
-
+  html += '</div>';
   document.getElementById('drawer-content').innerHTML = html;
+  filterDrawerList();
 }
 
-function showMoveUI(studentId) {
-  document.getElementById(`movebtn-${studentId}`).style.display = 'none';
-  document.getElementById(`moveui-${studentId}`).style.display  = 'flex';
+function showMoveUI(id) {
+  document.getElementById(`movebtn-${id}`).style.display = 'none';
+  document.getElementById(`moveui-${id}`).style.display  = 'flex';
 }
-
-function cancelMove(studentId) {
-  document.getElementById(`movebtn-${studentId}`).style.display = 'inline-flex';
-  document.getElementById(`moveui-${studentId}`).style.display  = 'none';
-}
-
-function confirmMove(studentId) {
-  const sel = document.getElementById(`movesel-${studentId}`);
-  const val = sel.value;
-  if (!val) { showToast('Please select a committee first'); return; }
-
-  const student = STUDENTS.find(s => s.id === studentId);
-  if (!student) return;
-
-  if (val === 'unassign') {
-    student.assigned = null;
-    student.flagged  = true;
-    showToast(`${student.name} unassigned — flagged for review`);
-  } else {
-    const toId = parseInt(val);
-    student.assigned = toId;
-    student.flagged  = false;
-    const toName = COMMITTEES.find(c => c.id === toId)?.name;
-    showToast(`${student.name} → ${toName}`);
-  }
-
-  recompute();
-  renderDrawerContent();
-  renderGrid();
-  updateStats();
-  if (document.getElementById('assign-results').style.display !== 'none') {
-    renderAssignTable();
-    renderFlagTable();
-  }
+function cancelMove(id) {
+  document.getElementById(`movebtn-${id}`).style.display = 'inline-flex';
+  document.getElementById(`moveui-${id}`).style.display  = 'none';
 }
 
 // ═══════════════════════════════════════════════════════════
-//  CSV IMPORT
+//  COMMITTEE EDITOR
 // ═══════════════════════════════════════════════════════════
+let committeeDraft = null;   // edited copy; committed by Save
 
-let csvPendingStudents = null;
+function startCommitteeEdit() {
+  if (!committeeDraft) committeeDraft = clone(COMMITTEES);
+  renderCommitteeEditor();
+}
+const draftDirty = () => committeeDraft && JSON.stringify(committeeDraft) !== JSON.stringify(COMMITTEES);
+
+function renderCommitteeEditor() {
+  const opts = (list, v) => list.map(o => `<option${o === v ? ' selected' : ''}>${o}</option>`).join('');
+  document.getElementById('cedit-body').innerHTML = committeeDraft.map((c, i) => `
+    <tr>
+      <td><input value="${esc(c.name)}" oninput="editC(${i},'name',this.value)" placeholder="Committee name"></td>
+      <td><select onchange="editC(${i},'type',this.value)">${opts(TYPE_OPTS, c.type)}</select></td>
+      <td><select onchange="editC(${i},'tier',this.value)">${opts(TIER_OPTS, c.tier)}</select></td>
+      <td><select onchange="editC(${i},'size',this.value)">${opts(SIZE_OPTS, c.size)}</select></td>
+      <td><input class="num" type="number" min="1" step="1" value="${c.cap}" oninput="editC(${i},'cap',this.value)"></td>
+      <td><input value="${esc(c.topics.join('; '))}" oninput="editC(${i},'topics',this.value)" placeholder="e.g. Law; Security"></td>
+      <td><button class="del" title="Remove committee" onclick="removeCommittee(${i})">✕</button></td>
+    </tr>`).join('');
+  updateCommitteeSummary();
+}
+
+function editC(i, key, val) {
+  const c = committeeDraft[i];
+  if (key === 'cap') c.cap = Number(val);
+  else if (key === 'topics') c.topics = val.split(/[;,]/).map(t => t.trim()).filter(Boolean);
+  else c[key] = val;
+  updateCommitteeSummary();
+}
+
+function updateCommitteeSummary() {
+  const seats = committeeDraft.reduce((a, c) => a + (Number.isFinite(c.cap) ? c.cap : 0), 0);
+  const gap = STUDENTS.length - seats;
+  document.getElementById('cedit-summary').innerHTML =
+    `${committeeDraft.length} committees · <b style="color:var(--text)">${seats}</b> seats for ${STUDENTS.length} delegates` +
+    (gap > 0 ? ` · <span style="color:var(--amber)">${gap} short</span>` : ` · <span style="color:var(--green)">${-gap} spare</span>`);
+  document.getElementById('cedit-bar').classList.toggle('dirty', draftDirty());
+  document.getElementById('cedit-errors').innerHTML = '';
+}
+
+function addCommittee() {
+  const id = Math.max(0, ...committeeDraft.map(c => c.id), ...COMMITTEES.map(c => c.id)) + 1;
+  committeeDraft.push({ id, name:'', type:'Topic-based', topics:[], size:'Medium', cap:30, tier:'Intermediate' });
+  renderCommitteeEditor();
+  const inputs = document.querySelectorAll('#cedit-body tr:last-child input');
+  if (inputs[0]) inputs[0].focus();
+}
+
+function removeCommittee(i) {
+  const c = committeeDraft[i];
+  if (c.name && !confirm(`Remove "${c.name}"?`)) return;
+  committeeDraft.splice(i, 1);
+  renderCommitteeEditor();
+}
+
+function saveCommittees() {
+  committeeDraft.forEach(c => { c.name = (c.name || '').trim(); });
+  const errs = E.validateCommittees(committeeDraft);
+  if (errs.length) {
+    document.getElementById('cedit-errors').innerHTML =
+      `<div class="notice error"><span class="notice-ico">✕</span><span><b>Fix these before saving:</b><br>${errs.map(esc).join('<br>')}</span></div>`;
+    return;
+  }
+  if (!draftDirty()) { showToast('No changes to save'); return; }
+  if (result && !confirm('Changing committees clears the current assignment (hand placements in committees that still exist are kept). Continue?')) return;
+  applyCommittees(committeeDraft);
+  showToast('Committees saved');
+}
+
+function applyCommittees(list) {
+  COMMITTEES = clone(list);
+  committeeDraft = clone(list);
+  settings.committeesTouched = true;
+  saveSettings();
+  const ids = new Set(COMMITTEES.map(c => c.id));
+  STUDENTS.forEach(s => {
+    if (s.seniorityPick && !ids.has(s.seniorityPick)) s.seniorityPick = null;
+    if (!(s.locked && ids.has(s.assigned))) { s.assigned = null; s.locked = false; }
+    s.flagged = false;
+  });
+  result = STUDENTS.some(s => s.locked) ? { fills: {} } : null;
+  renderCommitteeEditor();
+  refreshAll();
+}
+
+function resetCommittees() {
+  if (!confirm('Replace your committee list with the built-in default list?')) return;
+  committeeDraft = clone(E.COMMITTEES);
+  renderCommitteeEditor();
+  showToast('Defaults loaded. Press Save changes to keep them.');
+}
+
+function exportCommittees() {
+  download(`${slug(CONFERENCE)}-committees.json`, JSON.stringify({ app:'mun-sorter', kind:'committees', conference: CONFERENCE, committees: COMMITTEES }, null, 2), 'application/json');
+}
+
+function importCommittees(e) {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  f.text().then(txt => {
+    const data = JSON.parse(txt);
+    const list = Array.isArray(data) ? data : data.committees;
+    const errs = E.validateCommittees(list);
+    if (errs.length) throw new Error(errs.slice(0, 3).join('; '));
+    committeeDraft = list.map((c, i) => ({ id: Number.isInteger(c.id) ? c.id : i + 1, name: c.name, type: c.type, topics: c.topics, size: c.size, cap: c.cap, tier: c.tier }));
+    renderCommitteeEditor();
+    showToast(`${list.length} committees loaded. Press Save changes to keep them.`);
+  }).catch(err => showToast('Could not read that setup file: ' + err.message));
+}
+
+// ═══════════════════════════════════════════════════════════
+//  IMPORT
+// ═══════════════════════════════════════════════════════════
+let csvPending = null;
 
 function dragOver(e)  { e.preventDefault(); document.getElementById('import-zone').classList.add('drag-over'); }
-function dragLeave(e) { document.getElementById('import-zone').classList.remove('drag-over'); }
+function dragLeave()  { document.getElementById('import-zone').classList.remove('drag-over'); }
 function dropFile(e)  {
   e.preventDefault();
-  document.getElementById('import-zone').classList.remove('drag-over');
+  dragLeave();
   const file = e.dataTransfer.files[0];
-  if (file) readCSVFile(file);
+  if (file) readDataFile(file);
 }
-function handleFileUpload(e) { const f = e.target.files[0]; if (f) readCSVFile(f); }
+function handleFileUpload(e) { const f = e.target.files[0]; e.target.value = ''; if (f) readDataFile(f); }
 
-function readCSVFile(file) {
+// Reads CSV or Excel (.xlsx/.xls). Everything is parsed in-app and offline. The
+// file is never uploaded anywhere, so delegate personal data stays on this computer.
+function readDataFile(file) {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
   const reader = new FileReader();
-  reader.onload = e => processCSV(e.target.result, file.name);
-  reader.readAsText(file);
+  if (ext === 'xlsx' || ext === 'xls') {
+    reader.onload = e => {
+      try {
+        const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        processCSV(XLSX.utils.sheet_to_csv(ws), file.name);
+      } catch (err) {
+        showToast('Could not read that Excel file. Try exporting it as CSV.');
+        console.error(err);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    reader.onload = e => processCSV(e.target.result, file.name);
+    reader.readAsText(file);
+  }
 }
 
 function processCSV(text, filename) {
   try {
-    const students = parseCSV(text);
-    if (!students.length) { showToast('No valid rows found in CSV'); return; }
-    csvPendingStudents = students;
-    showCSVPreview(students, filename);
-  } catch(e) {
-    showToast('Error parsing CSV — check the format and try again');
+    const res = E.parseDelegates(text, COMMITTEES);
+    if (!res.students.length) { showToast('No delegate rows found in that file'); return; }
+    csvPending = res;
+    showCSVPreview(res, filename);
+  } catch (e) {
+    showToast('Error reading the file. Check the format and try again.');
     console.error(e);
   }
 }
 
-function parseCSVRow(line) {
-  const result = []; let cur = ''; let inQ = false;
-  for (const ch of line) {
-    if (ch === '"') { inQ = !inQ; }
-    else if (ch === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
-    else { cur += ch; }
-  }
-  result.push(cur.trim());
-  return result;
-}
-
-function findCol(headers, candidates) {
-  for (const c of candidates) {
-    const i = headers.indexOf(c);
-    if (i !== -1) return i;
-  }
-  return -1;
-}
-
-function matchType(raw) {
-  const r = raw.toLowerCase();
-  if (r.includes('regional') || r.includes('summit')) return 'Regional Summit';
-  if (r.includes('court') && !r.includes('criminal')) return 'Court';
-  if (r.includes('criminal')) return 'Court';
-  if (r.includes('historical') || r.includes('history')) return 'Historical';
-  if (r.includes('press') || r.includes('media')) return 'Press';
-  if (r.includes('general') || r.includes('assembly')) return 'General';
-  if (r.includes('topic') || r.includes('specialized')) return 'Topic-based';
-  // Try exact match
-  for (const t of TYPE_OPTS) { if (t.toLowerCase() === r) return t; }
-  return 'Topic-based';
-}
-
-function matchSize(raw) {
-  const r = raw.toLowerCase().trim();
-  if (r === 'small' || r === 's') return 'Small';
-  if (r === 'large' || r === 'l') return 'Large';
-  return 'Medium';
-}
-
-function parseCSV(text) {
-  const lines = text.trim().split(/\r?\n/);
-  if (lines.length < 2) throw new Error('Empty CSV');
-  const headers = parseCSVRow(lines[0]).map(h => h.toLowerCase().trim());
-
-  const cm = {
-    name:   findCol(headers, ['name','full name','student name','delegate name']),
-    school: findCol(headers, ['school','school name','institution','organization']),
-    year:   findCol(headers, ['year','experience','delegate year','level']),
-    type:   findCol(headers, ['preferred type','type','committee type','pref type','preference type']),
-    topics: findCol(headers, ['preferred topics','topics','pref topics','topic preferences']),
-    size:   findCol(headers, ['preferred size','size','pref size','committee size'])
-  };
-
-  const students = [];
-  for (let i = 1; i < lines.length; i++) {
-    if (!lines[i].trim()) continue;
-    const cols = parseCSVRow(lines[i]);
-
-    const rawYear = cm.year !== -1 ? (cols[cm.year] || '').toLowerCase() : '';
-    const year    = ['first','1st','new','novice','freshman','beginner','f'].some(v => rawYear.includes(v)) ? 'first' : 'returning';
-
-    const rawType  = cm.type !== -1 ? (cols[cm.type] || '') : '';
-    const prefType = rawType ? matchType(rawType) : 'Topic-based';
-
-    const rawTopics  = cm.topics !== -1 ? (cols[cm.topics] || '') : '';
-    const prefTopics = rawTopics.split(/[;,|]/).map(t => t.trim()).filter(Boolean).slice(0, 3);
-
-    const rawSize  = cm.size !== -1 ? (cols[cm.size] || '') : '';
-    const prefSize = rawSize ? matchSize(rawSize) : 'Medium';
-
-    const name   = cm.name   !== -1 ? (cols[cm.name]   || `Delegate ${i}`).trim() : `Delegate ${i}`;
-    const school = cm.school !== -1 ? (cols[cm.school] || 'Unknown School').trim() : 'Unknown School';
-
-    students.push({ id: i, name, school, year, prefType, prefTopics: prefTopics.length ? prefTopics : ['Economics'], prefSize, assigned: null, flagged: false });
-  }
-  return students;
-}
-
-function showCSVPreview(students, filename) {
-  const wrap  = document.getElementById('csv-preview-wrap');
-  const stats = document.getElementById('preview-stats');
-  const tbl   = document.getElementById('preview-table');
-
+function showCSVPreview(res, filename) {
+  const students = res.students;
   const schools = new Set(students.map(s => s.school)).size;
   const firstYr = students.filter(s => s.year === 'first').length;
+  const picks   = students.filter(s => s.seniorityPick).length;
 
-  stats.innerHTML = `
+  document.getElementById('preview-stats').innerHTML = `
+    <span><strong>${esc(filename)}</strong></span>
     <span><strong>${students.length}</strong> delegates</span>
     <span><strong>${schools}</strong> schools</span>
     <span><strong>${firstYr}</strong> first-year</span>
-    <span><strong>${students.length - firstYr}</strong> returning</span>`;
+    <span><strong>${students.length - firstYr}</strong> returning</span>
+    <span><strong>${picks}</strong> seniority pick${picks!==1?'s':''}</span>`;
+
+  const LABEL = { name:'Name', school:'School', year:'Year', type:'Preferred Type', topics:'Preferred Topics', size:'Preferred Size' };
+  const notes = [];
+  const ign = res.ignoredColumns;
+  notes.push(`<div class="notice ok"><span class="notice-ico">🔒</span><span><b>Confidentiality.</b> Read only what the sorter needs: <span style="color:var(--text)">${esc(res.usedColumns.join(', ') || '—')}</span>. ${ign.length
+      ? `<b>${ign.length}</b> other column${ign.length!==1?'s':''} ignored and never stored: <span style="color:var(--text-3)">${esc(ign.join(', '))}</span>.`
+      : 'No extra columns were present.'}</span></div>`);
+  if (res.missingColumns.length) {
+    const fallback = { name:'"Delegate N"', school:'"Unknown School" (school spreading won\'t work)', year:'everyone treated as returning', type:'Topic-based', topics:'Economics', size:'Medium' };
+    notes.push(`<div class="notice warn"><span class="notice-ico">⚠</span><span><b>Couldn't find ${res.missingColumns.length === 1 ? 'a column' : 'columns'} for: ${res.missingColumns.map(k => LABEL[k]).join(', ')}.</b> Rename the header${res.missingColumns.length === 1 ? '' : 's'} to match the list above and re-import, or continue with defaults: ${res.missingColumns.map(k => `${LABEL[k]} → ${esc(fallback[k])}`).join('; ')}.</span></div>`);
+  }
+  if (res.unmatchedPicks.length) {
+    const uniq = [...new Set(res.unmatchedPicks)];
+    notes.push(`<div class="notice warn"><span class="notice-ico">⚠</span><span><b>${res.unmatchedPicks.length} seniority pick${res.unmatchedPicks.length!==1?'s':''} didn't match any committee</b> and will be ignored: ${esc(uniq.slice(0, 8).join(', '))}${uniq.length > 8 ? '…' : ''}. Check spelling, or add the committee on the Committees tab first.</span></div>`);
+  }
+  if (students.length > totalSeats()) {
+    notes.push(`<div class="notice warn"><span class="notice-ico">⚠</span><span><b>${students.length} delegates, ${totalSeats()} seats.</b> Add seats on the Committees tab or ${students.length - totalSeats()} delegates will be flagged.</span></div>`);
+  }
+  document.getElementById('preview-notes').innerHTML = notes.join('');
 
   const preview = students.slice(0, 8);
-  let html = `<table><thead><tr><th>#</th><th>Name</th><th>School</th><th>Year</th><th>Pref. Type</th><th>Topics</th><th>Size</th></tr></thead><tbody>`;
+  let html = `<table><thead><tr><th>#</th><th>Name</th><th>School</th><th>Year</th><th>Pref. Type</th><th>Topics</th><th>Size</th><th>Pick</th></tr></thead><tbody>`;
   preview.forEach(s => {
     html += `<tr>
       <td class="mono" style="color:var(--text-3);font-size:12px">${s.id}</td>
-      <td style="font-weight:500">${s.name}</td>
-      <td style="color:var(--text-2);font-size:12.5px">${s.school}</td>
-      <td><span class="pill ${s.year==='first'?'pill-first':'pill-ret'}">${s.year==='first'?'First':'Returning'}</span></td>
+      <td style="font-weight:500">${esc(s.name)}</td>
+      <td style="color:var(--text-2);font-size:12.5px">${esc(s.school)}</td>
+      <td>${yearPill(s)}</td>
       <td>${typePill(s.prefType, true)}</td>
-      <td style="color:var(--text-2);font-size:12px">${s.prefTopics.join(', ')}</td>
-      <td style="color:var(--text-3);font-size:12px">${s.prefSize}</td>
+      <td style="color:var(--text-2);font-size:12px">${esc(s.prefTopics.join(', '))}</td>
+      <td style="color:var(--text-3);font-size:12px">${esc(s.prefSize)}</td>
+      <td style="color:var(--text-2);font-size:12px">${esc(cById(s.seniorityPick)?.name || '')}</td>
     </tr>`;
   });
-  if (students.length > 8) {
-    html += `<tr><td colspan="7" style="text-align:center;color:var(--text-3);font-size:12px;padding:12px">… and ${students.length - 8} more</td></tr>`;
-  }
-  html += '</tbody></table>';
-  tbl.innerHTML = html;
+  if (students.length > 8) html += `<tr><td colspan="8" style="text-align:center;color:var(--text-3);font-size:12px;padding:12px">… and ${students.length - 8} more</td></tr>`;
+  document.getElementById('preview-table').innerHTML = html + '</tbody></table>';
+  const wrap = document.getElementById('csv-preview-wrap');
   wrap.style.display = 'block';
   wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function cancelImport() {
+  csvPending = null;
+  document.getElementById('csv-preview-wrap').style.display = 'none';
+}
+
+function setDelegates(students, isSample) {
+  STUDENTS = students;
+  IS_SAMPLE = isSample;
+  result = null;
+  closeDrawer();
+  refreshAll();
+}
+
 function confirmImport() {
-  if (!csvPendingStudents || !csvPendingStudents.length) return;
-  STUDENTS = csvPendingStudents;
-  result   = null;
-  csvPendingStudents = null;
-
-  // Reset UI
-  updateStats();
-  renderGrid();
-  renderDelegates();
-  document.getElementById('d-total').textContent      = STUDENTS.length;
-  document.getElementById('d-total-hint').textContent = `${STUDENTS.length} delegates imported`;
-  document.getElementById('delegates-sub').textContent = `${STUDENTS.length} delegates · imported data`;
-
-  // Reset assignment tab
-  document.getElementById('assign-results').style.display = 'none';
-  document.getElementById('res-cards').style.display = 'none';
-  document.getElementById('prog-wrap').style.display = 'none';
-  document.getElementById('btn-icon').textContent = '▶';
-  document.getElementById('btn-text').textContent = 'Run Assignment';
-  document.getElementById('run-btn').disabled = false;
-
-  showToast(`${STUDENTS.length} delegates imported · run assignment to sort them`);
-  switchTab('dashboard');
+  if (!csvPending) return;
+  const n = csvPending.students.length;
+  setDelegates(csvPending.students, false);
+  cancelImport();
+  showToast(`${n} delegates imported · run assignment to sort them`);
+  switchTab('committees');
 }
 
 function useSampleData() {
-  STUDENTS = genStudents(855);
-  result   = null;
-  csvPendingStudents = null;
-  document.getElementById('csv-preview-wrap').style.display = 'none';
-  updateStats();
-  renderGrid();
-  renderDelegates();
-  document.getElementById('d-total').textContent      = 200;
-  document.getElementById('d-total-hint').textContent = 'Mock dataset · 1,500 in production';
-  showToast('Reverted to mock sample data');
+  if (!IS_SAMPLE && !confirm('Replace your imported delegates with fake sample data?')) return;
+  setDelegates(genStudents(), true);
+  cancelImport();
+  showToast('Sample data loaded');
   switchTab('dashboard');
 }
 
 function downloadTemplate() {
-  const csv = `Name,School,Year,Preferred Type,Preferred Topics,Preferred Size
-Alex Smith,Lincoln High School,first,Court,"Law;History;Justice",Small
-Maria Garcia,Jefferson Academy,returning,Regional Summit,"Healthcare;Human Rights;Labor",Medium
-Jordan Lee,Roosevelt Prep,first,Topic-based,"Economics;Trade;Banking",Large
-Priya Patel,Westbrook Academy,returning,Historical,"History;Security;Politics",Small
-Carlos Hernandez,Riverside Academy,first,General,"Environment;Humanitarian;Energy",Large`;
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url  = URL.createObjectURL(blob);
-  const a    = Object.assign(document.createElement('a'), { href:url, download:'ymun-template.csv' });
-  a.click();
-  URL.revokeObjectURL(url);
+  download('mun-registration-template.csv', E.toCSV([
+    ['Name','School','Year','Preferred Type','Preferred Topics','Preferred Size','Seniority Pick'],
+    ['Alex Smith','Lincoln High School','First','Court','Law;History;Justice','Small',''],
+    ['Maria Garcia','Jefferson Academy','Returning','Regional Summit','Healthcare;Human Rights;Labor','Medium','Security Council'],
+    ['Jordan Lee','Roosevelt Prep','First','Topic-based','Economics;Trade;Banking','Large',''],
+    ['Priya Patel','Westbrook Academy','Returning','Historical','History;Security;Politics','Small','ICJ']
+  ]), 'text/csv');
 }
 
-// ─── CSV Export ───────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+//  EXPORT
+// ═══════════════════════════════════════════════════════════
+function slug(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'mun'; }
+
+function download(filename, content, type) {
+  const blob = content instanceof Blob ? content : new Blob([content], { type });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href:url, download:filename });
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function delegateRow(s) {
+  const c = cById(s.assigned);
+  return {
+    'ID': s.id, 'Name': s.name, 'School': s.school,
+    'Year': s.year === 'first' ? 'First-year' : 'Returning',
+    'Committee': c ? c.name : '',
+    'Status': s.flagged ? 'Flagged: needs a seat' : s.locked ? 'Placed by hand' : c ? 'Assigned' : 'Not assigned',
+    'Why': E.explainPlacement(s, COMMITTEES),
+    'Pref Type': s.prefType, 'Pref Topics': s.prefTopics.join('; '), 'Pref Size': s.prefSize,
+    'Seniority Pick': cById(s.seniorityPick)?.name || ''
+  };
+}
+
 function exportCSV() {
-  const header = ['ID','Name','School','Year','Pref Type','Pref Topics','Pref Size','Assigned Committee','Flagged'];
-  const rows   = STUDENTS.map(s => {
-    const c = s.assigned ? COMMITTEES.find(x => x.id === s.assigned)?.name ?? '' : '';
-    return [s.id, s.name, s.school, s.year, s.prefType, s.prefTopics.join(';'), s.prefSize, c, s.flagged?'Yes':'No'];
-  });
-  const csv  = [header, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
-  const blob = new Blob([csv], { type:'text/csv' });
-  const url  = URL.createObjectURL(blob);
-  const a    = Object.assign(document.createElement('a'), { href:url, download:'ymun-assignments.csv' });
-  a.click();
-  URL.revokeObjectURL(url);
+  const rows = STUDENTS.map(delegateRow);
+  const header = Object.keys(rows[0] || delegateRow({ prefTopics: [] }));
+  download(`${slug(CONFERENCE)}-assignments.csv`, '﻿' + E.toCSV([header, ...rows.map(r => header.map(h => r[h]))]), 'text/csv');
 }
 
-// ─── Toast ────────────────────────────────────────────────
+function exportCommitteeRoster(id) {
+  const c = cById(id);
+  const here = STUDENTS.filter(s => s.assigned === id).sort((a, b) => a.school.localeCompare(b.school) || a.name.localeCompare(b.name));
+  download(`${slug(c.name)}-roster.csv`, '﻿' + E.toCSV([
+    ['Name','School','Year'],
+    ...here.map(s => [s.name, s.school, s.year === 'first' ? 'First-year' : 'Returning'])
+  ]), 'text/csv');
+}
+
+// One workbook with everything an organizing team hands out:
+// Summary · All Delegates · By School (for advisors) · one sheet per committee (for chairs) · Flagged.
+function exportWorkbook() {
+  const wb = XLSX.utils.book_new();
+  const used = new Set();
+  const sheetName = raw => {
+    let base = String(raw).replace(/[\[\]:*?\/\\]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 28) || 'Sheet';
+    let name = base, n = 2;
+    while (used.has(name.toLowerCase())) name = `${base.slice(0, 26)} ${n++}`;
+    used.add(name.toLowerCase());
+    return name;
+  };
+  const add = (name, rows, widths) => {
+    const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ '': 'Nobody here yet' }]);
+    if (widths) ws['!cols'] = widths.map(w => ({ wch: w }));
+    XLSX.utils.book_append_sheet(wb, ws, sheetName(name));
+  };
+  const bySchoolName = (a, b) => a.school.localeCompare(b.school) || a.name.localeCompare(b.name);
+
+  const m = E.metrics(STUDENTS, COMMITTEES);
+  add('Summary', COMMITTEES.map(c => {
+    const here = STUDENTS.filter(s => s.assigned === c.id);
+    return { 'Committee': c.name, 'Type': c.type, 'Level': c.tier, 'Size': c.size, 'Seats': c.cap,
+      'Assigned': here.length, 'First-years': here.filter(s => s.year === 'first').length,
+      'Schools': new Set(here.map(s => s.school)).size, 'Topics': c.topics.join('; ') };
+  }).concat([{}, { 'Committee': `${m.placed} placed · ${m.flagged} flagged · ${m.typeMatch}% got preferred type · ${m.topicMatch}% got a preferred topic` }]),
+  [34, 16, 13, 9, 7, 9, 11, 9, 40]);
+
+  const all = [...STUDENTS].sort(bySchoolName).map(delegateRow);
+  add('All Delegates', all, [6, 24, 26, 11, 32, 18, 44, 16, 34, 9, 28]);
+  add('By School', [...STUDENTS].sort(bySchoolName).map(s => ({
+    'School': s.school, 'Name': s.name, 'Year': s.year === 'first' ? 'First-year' : 'Returning',
+    'Committee': cById(s.assigned)?.name || (s.flagged ? 'NEEDS A SEAT' : '')
+  })), [28, 24, 11, 34]);
+  COMMITTEES.forEach(c => add(c.name, STUDENTS.filter(s => s.assigned === c.id).sort(bySchoolName).map((s, i) => ({
+    '#': i + 1, 'Name': s.name, 'School': s.school, 'Year': s.year === 'first' ? 'First-year' : 'Returning'
+  })), [5, 26, 28, 11]));
+  const flagged = STUDENTS.filter(s => s.flagged);
+  if (flagged.length) add('Flagged', flagged.map(delegateRow), [6, 24, 26, 11, 32, 18, 44, 16, 34, 9, 28]);
+
+  const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  download(`${slug(CONFERENCE)}-rosters.xlsx`, new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  showToast('Rosters exported');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SESSIONS (save / open everything in one file)
+// ═══════════════════════════════════════════════════════════
+function saveSession() {
+  if (!IS_SAMPLE && !confirm('The session file contains delegate names and schools. Keep it somewhere private. Save it now?')) return;
+  const data = { app:'mun-sorter', kind:'session', version:1, savedAt: new Date().toISOString(),
+    conference: CONFERENCE, committees: COMMITTEES, students: STUDENTS, assigned: !!result, sample: IS_SAMPLE };
+  download(`${slug(CONFERENCE)}-session-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(data), 'application/json');
+}
+
+function openSession() { document.getElementById('session-input').click(); }
+
+function loadSessionFile(e) {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  f.text().then(txt => {
+    const d = JSON.parse(txt);
+    if (d.app !== 'mun-sorter' || d.kind !== 'session') throw new Error('not a session file from this app');
+    const errs = E.validateCommittees(d.committees);
+    if (errs.length) throw new Error(errs[0]);
+    const KEYS = ['id','name','school','year','prefType','prefTopics','prefSize','seniorityPick','assigned','flagged','locked'];
+    const students = (d.students || []).map(s => Object.fromEntries(KEYS.map(k => [k, s[k] ?? (k === 'prefTopics' ? [] : null)])));
+    students.forEach(s => { s.flagged = !!s.flagged; s.locked = !!s.locked; });
+    CONFERENCE = d.conference || CONFERENCE;
+    COMMITTEES = d.committees; committeeDraft = clone(COMMITTEES);
+    saveSettings();
+    setDelegates(students, !!d.sample);
+    if (d.assigned) { result = { fills: {} }; refreshAll(); }
+    if (document.getElementById('tab-committees').classList.contains('active')) renderCommitteeEditor();
+    showToast(`Session opened · ${students.length} delegates`);
+  }).catch(err => showToast('Could not open that file: ' + err.message));
+}
+
+function renameConference() {
+  const name = prompt('Conference name (shown in the header and used for export file names):', CONFERENCE);
+  if (name == null || !name.trim()) return;
+  CONFERENCE = name.trim().slice(0, 60);
+  saveSettings();
+  renderHeader();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SHELL
+// ═══════════════════════════════════════════════════════════
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3200);
 }
 
-// ─── Tab switch ───────────────────────────────────────────
-const TABS = ['dashboard','assignment','students','import'];
 function switchTab(name) {
-  TABS.forEach((t, i) => {
-    document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
-    document.querySelectorAll('#main-nav button')[i].classList.toggle('active', t === name);
-  });
-  if (name === 'students') renderDelegates();
+  if (document.getElementById('tab-committees').classList.contains('active') && name !== 'committees' && draftDirty()) {
+    if (!confirm('You have unsaved committee changes. Leave without saving?')) return;
+    committeeDraft = clone(COMMITTEES);
+  }
+  document.querySelectorAll('.tab-view').forEach(v => v.classList.toggle('active', v.id === `tab-${name}`));
+  document.querySelectorAll('#main-nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  if (name === 'students')   renderDelegates();
+  if (name === 'committees') startCommitteeEdit();
+  if (name === 'assignment') renderPreflight();
+  window.scrollTo(0, 0);
 }
-
-// ─── Keyboard: Escape closes drawer ──────────────────────
+document.querySelectorAll('#main-nav button').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
 
 // ─── Init ─────────────────────────────────────────────────
-document.getElementById('d-total').textContent = STUDENTS.length;
 renderLegend();
-renderGrid();
-renderDelegates();
+setDelegates(genStudents(), true);
 </script>
 </body>
 </html>

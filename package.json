@@ -1,0 +1,40 @@
+{
+  "name": "mun-committee-sorter",
+  "productName": "MUN Committee Sorter",
+  "version": "1.0.0",
+  "description": "Offline desktop tool that sorts Model UN delegates into committees from a registration spreadsheet. All processing stays on the machine.",
+  "main": "main.js",
+  "author": "asuarcia",
+  "license": "MIT",
+  "repository": "github:asuarcia/MUN-Sorting-Algorithim",
+  "scripts": {
+    "start": "electron .",
+    "test": "node test/verify.js",
+    "dist": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "dist:linux": "electron-builder --linux",
+    "web": "node scripts/build-web.js"
+  },
+  "devDependencies": {
+    "electron": "^43.7.10",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "io.github.asuarcia.mun-committee-sorter",
+    "productName": "MUN Committee Sorter",
+    "directories": { "buildResources": "build", "output": "dist" },
+    "files": ["index.html", "engine.js", "main.js", "favicon.png", "vendor/**/*"],
+    "win": { "target": "portable", "icon": "build/icon.ico" },
+    "portable": { "artifactName": "MUN-Committee-Sorter-Windows.exe" },
+    "mac": {
+      "target": [{ "target": "dmg", "arch": ["universal"] }],
+      "category": "public.app-category.education",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "icon": "build/icon.png"
+    },
+    "dmg": { "artifactName": "MUN-Committee-Sorter-Mac.dmg" },
+    "linux": { "target": "AppImage", "category": "Education", "icon": "build/icon.png" },
+    "appImage": { "artifactName": "MUN-Committee-Sorter-Linux.AppImage" }
+  }
+}
