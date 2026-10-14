@@ -287,40 +287,48 @@
     .overlay.active { opacity: 1; pointer-events: all; }
 
     .drawer {
-      position: fixed; top: 0; right: 0; bottom: 0; width: 460px;
-      background: var(--surface); border-left: 1px solid var(--border-2);
-      z-index: 400;
-      transform: translateX(100%);
-      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      position: fixed; top: 50%; left: 50%;
+      width: min(980px, calc(100vw - 32px)); height: min(860px, calc(100vh - 48px));
+      background: var(--surface); border: 1px solid var(--border-2); border-radius: 14px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+      z-index: 400; opacity: 0; pointer-events: none;
+      transform: translate(-50%, -48%) scale(0.97);
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s;
       display: flex; flex-direction: column; overflow: hidden;
     }
-    .drawer.active { transform: translateX(0); }
+    .drawer.active { opacity: 1; pointer-events: all; transform: translate(-50%, -50%) scale(1); }
 
     .drawer-hd {
-      padding: 22px 24px 18px;
+      padding: 26px 32px 20px;
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
     .drawer-hd-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-    .drawer-name   { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; line-height: 1.2; margin-top: 8px; }
-    .drawer-meta   { font-size: 12.5px; color: var(--text-2); margin-top: 5px; }
+    .drawer-name   { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; line-height: 1.2; margin-top: 8px; }
+    .drawer-meta   { font-size: 14px; color: var(--text-2); margin-top: 5px; }
 
     .drawer-close {
       background: var(--surface-2); border: 1px solid var(--border-2);
-      border-radius: 6px; width: 30px; height: 30px;
+      border-radius: 8px; width: 36px; height: 36px;
       display: flex; align-items: center; justify-content: center;
       color: var(--text-2); cursor: pointer; font-size: 13px;
       transition: all 0.15s; flex-shrink: 0;
     }
     .drawer-close:hover { color: var(--text); border-color: var(--text-3); }
 
-    .drawer-bar-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11.5px; color: var(--text-2); }
+    .drawer-bar-labels { display: flex; justify-content: space-between; margin-top: 8px; font-size: 13px; color: var(--text-2); }
 
-    .drawer-search { padding: 14px 16px 10px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+    .drawer-search { padding: 14px 32px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
 
-    .drawer-body   { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .drawer-body   { flex: 1; overflow-y: auto; padding: 8px 20px 20px; }
+    .drawer-list   { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr)); gap: 10px; align-items: start; }
+    .drawer-list .d-row { border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+    .drawer-list .d-row:last-child { border-bottom: 1px solid var(--border); }
+    .drawer-list .d-name   { font-size: 15.5px; }
+    .drawer-list .d-school { font-size: 13px; }
+    .drawer-list .reason   { font-size: 12.5px; line-height: 1.45; }
 
-    .drawer-count  { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-3); padding: 10px 20px 6px; }
+    .drawer-count  { font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-3); padding: 12px 4px 10px; }
 
     .drawer-empty  { padding: 48px 24px; text-align: center; color: var(--text-3); font-size: 14px; }
 
@@ -737,10 +745,7 @@
 
 <!-- Drawer overlay + panel -->
 <div class="overlay" id="overlay" onclick="closeDrawer()"></div>
-<div class="drawer" id="drawer">
-  <div class="drawer-search">
-    <input class="srch" type="text" id="drawer-srch" placeholder="Search delegates in this committee…" oninput="filterDrawerList()" style="width:100%">
-  </div>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true">
   <div id="drawer-content" style="display:flex;flex-direction:column;flex:1;overflow:hidden"></div>
 </div>
 
@@ -1162,8 +1167,9 @@ function openDrawer(committeeId) {
   drawerCommitteeId = committeeId;
   document.getElementById('overlay').classList.add('active');
   document.getElementById('drawer').classList.add('active');
-  document.getElementById('drawer-srch').value = '';
   renderDrawerContent();
+  document.getElementById('drawer-srch').value = '';
+  filterDrawerList();
 }
 
 function closeDrawer() {
@@ -1182,6 +1188,7 @@ function filterDrawerList() {
 function renderDrawerContent() {
   const c = cById(drawerCommitteeId);
   if (!c) { closeDrawer(); return; }
+  const prevQ = document.getElementById('drawer-srch')?.value || '';
   const delegates = result ? STUDENTS.filter(s => s.assigned === c.id).sort((a, b) => a.school.localeCompare(b.school) || a.name.localeCompare(b.name)) : [];
   const cnt       = delegates.length;
   const pct       = Math.round(cnt / c.cap * 100);
@@ -1203,7 +1210,10 @@ function renderDrawerContent() {
         <div class="bar-fill" style="width:${Math.min(100,pct)}%;background:${barClr}"></div>
       </div>
       <div class="drawer-bar-labels"><span>${cnt} assigned</span><span>${pct}% full</span></div>
-      ${cnt ? `<button class="action-btn" style="margin-top:12px;padding:7px 14px;font-size:12px" onclick="exportCommitteeRoster(${c.id})">↓ Roster for the chair (CSV)</button>` : ''}
+      ${cnt ? `<button class="action-btn" style="margin-top:14px;padding:8px 16px;font-size:13px" onclick="exportCommitteeRoster(${c.id})">↓ Roster for the chair (CSV)</button>` : ''}
+    </div>
+    <div class="drawer-search">
+      <input class="srch" type="text" id="drawer-srch" placeholder="Search by name or school…" oninput="filterDrawerList()" value="${esc(prevQ)}" style="width:100%">
     </div>`;
 
   html += '<div class="drawer-body">';
@@ -1212,7 +1222,7 @@ function renderDrawerContent() {
   } else if (!cnt) {
     html += `<div class="drawer-empty">No delegates assigned to this committee.</div>`;
   } else {
-    html += `<div class="drawer-count">${cnt} delegate${cnt !== 1 ? 's' : ''}</div>`;
+    html += `<div class="drawer-count">${cnt} delegate${cnt !== 1 ? 's' : ''}</div><div class="drawer-list">`;
     html += delegates.map(s => `
       <div class="d-row" id="drow-${s.id}">
         <div class="d-row-top">
@@ -1238,7 +1248,7 @@ function renderDrawerContent() {
           <button class="move-confirm" onclick="placeStudent(${s.id}, document.getElementById('movesel-${s.id}').value)">Move</button>
           <button class="move-cancel" onclick="cancelMove(${s.id})">✕</button>
         </div>
-      </div>`).join('');
+      </div>`).join('') + '</div>';
   }
   html += '</div>';
   document.getElementById('drawer-content').innerHTML = html;
