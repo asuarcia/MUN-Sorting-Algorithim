@@ -2,10 +2,11 @@
 make_mock_data.py — generate a realistic mock registration export for testing.
 
 Writes mock_delegates.csv (always) and mock_delegates.xlsx (if openpyxl is
-installed). The file deliberately mixes the columns the sorter NEEDS with a pile
-of fake PERSONAL columns (email, phone, DOB, home address, medical conditions,
-allergies, emergency contacts, ...). Uploading it proves the app pulls only the
-needed fields and silently drops everything else.
+installed). The columns are exactly those of the 2027 GPY Model UN Airtable
+registration form, so the file looks like a real export: the handful the sorter
+NEEDS mixed in with a pile of fake PERSONAL ones (email, birthday, address,
+insurance, allergies, emergency contacts, signatures, ...). Uploading it proves
+the app pulls only the needed fields and silently drops everything else.
 
 All data is fake and seeded, so re-running produces the same file.
 """
@@ -30,63 +31,100 @@ SCHOOLS = ["Lincoln High School", "Jefferson Academy", "Roosevelt Preparatory",
            "Washington Academy", "Madison High", "Franklin Institute", "Hamilton School",
            "Monroe Academy", "Kennedy International", "Westbrook Academy", "Eastside High School",
            "Riverside Academy", "Lakewood High", "Hillcrest School", "Greenwood Academy"]
-TOPICS = ["Healthcare", "Economics", "Environment", "Security", "Law", "Human Rights",
-          "Technology", "History", "Media", "Labor", "Energy", "Defense", "Politics",
-          "Banking", "Trade", "Humanitarian", "Justice", "Industrialization"]
-TYPES = ["Regional Summit", "Topic-based", "Court", "General", "Historical", "Press"]
-SIZES = ["Small", "Medium", "Large"]
+# The 2027 GPY Model UN registration form (Airtable) — exact option lists.
+INTERESTS = ["Technology", "Health", "Environment", "Economic", "Law",
+             "Social Justice/Human Rights", "History", "Military/Conflict Resolution", "Social Media"]
+SIZES = ["Small (20-40)", "Medium (40-70)", "Large (70+)"]
+NO_SIZE_PREF = "No preference on committee size"
+GENDERS = ["Male", "Female", "Non-binary", "Genderfluid"]
+PRONOUNS = ["She/Her", "He/Him", "They/Them", "She/They", "He/They"]
+TSHIRT = ["Small", "Medium", "Large", "XL", "XXL", "XXXL"]
 
-# Seniority picks use a mix of full names and acronyms to exercise the matcher.
+# Seniority picks aren't on the form; organizers add the column in Airtable.
+# A mix of full names and acronyms exercises the matcher.
 PICKS = ["Security Council", "ICJ", "International Criminal Court", "WHO",
          "General Assembly", "Historical Security Council", "Press / Media", "G20"]
 
 # Fake sensitive values — these must NEVER make it into the app.
-MEDICAL = ["None", "Asthma", "ADHD", "Type 1 Diabetes", "Anxiety", "Epilepsy", "None", "None"]
-ALLERGIES = ["None", "Peanuts", "Shellfish", "Penicillin", "None", "Lactose", "None"]
-DIETARY = ["None", "Vegetarian", "Vegan", "Halal", "Kosher", "Gluten-free", "None"]
-TSHIRT = ["S", "M", "L", "XL"]
-PAYMENT = ["Paid", "Pending", "Waived"]
+DIETARY = ["", "Vegetarian", "Vegan", "Halal", "Kosher", "Gluten-free", ""]
+ALLERGIES = ["", "Peanuts", "Tree nuts", "Shellfish", "Dairy", "", ""]
+INSURERS = ["Blue Cross", "Aetna", "Cigna", "UnitedHealthcare", "Kaiser"]
+STATES = ["CA", "NY", "TX", "IL", "MA"]
 
-# Column order mimics a real Airtable form export (needed + personal interleaved).
+# Column order is the form's field order, as an Airtable CSV export writes it.
 HEADERS = [
-    "Timestamp", "Full Name", "Email", "Phone Number", "Date of Birth", "Home Address",
-    "School", "Year", "Preferred Type", "Preferred Topics", "Preferred Size", "Seniority Pick",
-    "Medical Conditions", "Allergies", "Dietary Restrictions",
-    "Emergency Contact Name", "Emergency Contact Phone", "Parent/Guardian Email",
-    "T-Shirt Size", "Payment Status",
+    "First Name", "Last Name", "Preferred First Name", "Gender", "Pronouns", "Birthday",
+    "T-Shirt Size", "Delegation", "Email", "Home Address", "City", "State", "Zip Code",
+    "Parent/Guardian & Emergency Contact Name", "Parent/Guardian & Emergency Contact Phone",
+    "Parent/Guardian & Emergency Contact Email", "Additional Emergency Contact Name",
+    "Additional Emergency Contact Phone", "Grade", "Are you a first year delegate or returning?",
+    "What are your interests in Model UN?", "Please select ALL committee sizes you are interested in",
+    "Dietary Restrictions - Please select from the list below",
+    "Allergies - Please select all allergies from the list below", "Do you require an Epi-Pen?",
+    "Any additional dietary and/or allergy information you would like to share?",
+    "Medical Insurance Provider", "Health Insurance Policy Number", "Insurance Group Name/Number",
+    "Medical Insurance Policy Holder Full Name", "Policy Holder Phone Number", "Medical Waiver",
+    "Parent Signature - Participation Agreement", "Parent Signature - Financial Agreement",
+    "Participant Signature - Code of Conduct", "Parent Signature - Code of Conduct",
+    "Seniority Pick",
 ]
+
+
+def phone():
+    return f"({random.randint(200,999)}) 555-{random.randint(1000,9999)}"
 
 
 def make_row(i):
     first, last = random.choice(FIRST), random.choice(LAST)
-    name = f"{first} {last}"
-    returning = random.random() > 0.40            # ~40% first-years
-    year = "Returning" if returning else "First Year"
-    # ~8% of returning delegates carry a seniority pick
+    grade = random.choice([9, 9, 10, 10, 11, 11, 12])
+    # First-years skew young: ~70% of 9th graders, ~15% of seniors
+    returning = random.random() > {9: 0.70, 10: 0.45, 11: 0.25, 12: 0.15}[grade]
     pick = random.choice(PICKS) if (returning and random.random() < 0.08) else ""
-    topics = ";".join(random.sample(TOPICS, 3))
-    dob = f"{random.randint(2006, 2010)}-{random.randint(1,12):02d}-{random.randint(1,28):02d}"
+    interests = ",".join(random.sample(INTERESTS, random.randint(1, 5)))
+    if random.random() < 0.2:
+        sizes = NO_SIZE_PREF
+    else:
+        sizes = ",".join(sorted(random.sample(SIZES, random.randint(1, 3)), key=SIZES.index))
+    allergy = random.choice(ALLERGIES)
+    parent = f"{random.choice(FIRST)} {last}"
     return {
-        "Timestamp": f"2026-0{random.randint(1,9)}-{random.randint(10,28)} {random.randint(8,18)}:{random.randint(10,59)}",
-        "Full Name": name,
-        "Email": f"{first.lower()}.{last.lower()}{random.randint(1,99)}@example.edu",
-        "Phone Number": f"+1-555-{random.randint(100,999)}-{random.randint(1000,9999)}",
-        "Date of Birth": dob,
-        "Home Address": f"{random.randint(10,9999)} {random.choice(['Maple','Oak','Pine','Elm','Cedar'])} St, Springfield",
-        "School": random.choice(SCHOOLS),
-        "Year": year,
-        "Preferred Type": random.choice(TYPES),
-        "Preferred Topics": topics,
-        "Preferred Size": random.choice(SIZES),
-        "Seniority Pick": pick,
-        "Medical Conditions": random.choice(MEDICAL),
-        "Allergies": random.choice(ALLERGIES),
-        "Dietary Restrictions": random.choice(DIETARY),
-        "Emergency Contact Name": f"{random.choice(FIRST)} {last}",
-        "Emergency Contact Phone": f"+1-555-{random.randint(100,999)}-{random.randint(1000,9999)}",
-        "Parent/Guardian Email": f"parent.{last.lower()}{random.randint(1,99)}@example.com",
+        "First Name": first,
+        "Last Name": last,
+        "Preferred First Name": random.choice(["", "", "", "", first[:3]]),
+        "Gender": random.choice(GENDERS),
+        "Pronouns": random.choice(PRONOUNS),
+        "Birthday": f"{random.randint(1,12)}/{random.randint(1,28)}/{2026 - grade - 6}",
         "T-Shirt Size": random.choice(TSHIRT),
-        "Payment Status": random.choice(PAYMENT),
+        "Delegation": random.choice(SCHOOLS),
+        "Email": f"{first.lower()}.{last.lower()}{random.randint(1,99)}@example.com",
+        "Home Address": f"{random.randint(10,9999)} {random.choice(['Maple','Oak','Pine','Elm','Cedar'])} St",
+        "City": "Springfield",
+        "State": random.choice(STATES),
+        "Zip Code": f"{random.randint(10000,99999)}",
+        "Parent/Guardian & Emergency Contact Name": parent,
+        "Parent/Guardian & Emergency Contact Phone": phone(),
+        "Parent/Guardian & Emergency Contact Email": f"parent.{last.lower()}{random.randint(1,99)}@example.com",
+        "Additional Emergency Contact Name": random.choice(["", f"{random.choice(FIRST)} {last}"]),
+        "Additional Emergency Contact Phone": random.choice(["", phone()]),
+        "Grade": str(grade),
+        "Are you a first year delegate or returning?": "Returning" if returning else "First year delegate",
+        "What are your interests in Model UN?": interests,
+        "Please select ALL committee sizes you are interested in": sizes,
+        "Dietary Restrictions - Please select from the list below": random.choice(DIETARY),
+        "Allergies - Please select all allergies from the list below": allergy,
+        "Do you require an Epi-Pen?": "Yes" if allergy in ("Peanuts", "Tree nuts") and random.random() < 0.5 else "No",
+        "Any additional dietary and/or allergy information you would like to share?": "",
+        "Medical Insurance Provider": random.choice(INSURERS),
+        "Health Insurance Policy Number": f"P{random.randint(10**8, 10**9 - 1)}",
+        "Insurance Group Name/Number": f"G{random.randint(1000, 9999)}",
+        "Medical Insurance Policy Holder Full Name": parent,
+        "Policy Holder Phone Number": phone(),
+        "Medical Waiver": "checked",
+        "Parent Signature - Participation Agreement": "signature.png (https://example.com/sig.png)",
+        "Parent Signature - Financial Agreement": "signature.png (https://example.com/sig.png)",
+        "Participant Signature - Code of Conduct": "signature.png (https://example.com/sig.png)",
+        "Parent Signature - Code of Conduct": "signature.png (https://example.com/sig.png)",
+        "Seniority Pick": pick,
     }
 
 

@@ -23,7 +23,7 @@ Nothing to install: download it and double-click.
 
 ## How to use it
 
-1. **Import.** Export your registration responses (Google Forms, Airtable, Excel…) as CSV or Excel and drop the file in.
+1. **Import.** In Airtable, open the registration table and **Download CSV** (or export to Excel), then drop the file in. It's set up for the 2027 GPY Model UN registration form, so no columns need renaming. Other forms work too.
 2. **Committees.** Enter your conference's committees: name, seats, topics, and whether each is Beginner, Intermediate or Advanced. The app remembers them for next time.
 3. **Run.** Click **Run Assignment**. Every delegate gets a seat, and the app warns you first if you don't have enough seats.
 4. **Review & export.** Click any committee to see who's in it and **Move** people by hand. Hand placements stick if you re-run. Then **Export rosters (Excel)** to get one file with:
@@ -38,23 +38,23 @@ Nothing to install: download it and double-click.
 
 ## Your spreadsheet
 
-The app needs these columns. Headers are case-insensitive, any order, and common variants like "Full Name" or "Delegation" work too.
+The defaults match the **2027 GPY Model UN** Airtable registration form. These are the fields the app reads, under the form's own names. Headers are case-insensitive, any order, and close variants (`Full Name`, `School`, `Interests`, `Committee size`) work too.
 
-| Column | What to put in it |
+| Form field | Answers |
 |---|---|
-| Name | Delegate's full name |
-| School | School or delegation |
-| Year | `First` / `New` / `Novice` → first-year. Anything else → returning |
-| Preferred Type | Regional Summit · Topic-based · Court · General · Historical · Press |
-| Preferred Topics | Up to 3, separated by `;` (e.g. `Law;History;Justice`) |
-| Preferred Size | Small · Medium · Large |
-| Seniority Pick *(optional)* | A committee name or acronym (`ICJ`, `Security Council`) |
+| First Name · Last Name · Preferred First Name | Rosters use the preferred first name when there is one |
+| Delegation | The delegate's school delegation. Used to spread delegations across rooms |
+| Grade | 9 · 10 · 11 · 12 |
+| Are you a first year delegate or returning? | First year delegate · Returning |
+| What are your interests in Model UN? | Any of: Technology · Health · Environment · Economic · Law · Social Justice/Human Rights · History · Military/Conflict Resolution · Social Media |
+| Please select ALL committee sizes you are interested in | Small (20-40) · Medium (40-70) · Large (70+) · No preference on committee size |
+| Seniority Pick *(optional, not on the form; add the field in Airtable)* | A committee name or acronym (`ICJ`, `Security Council`) |
 
-There's a **Download blank template** button on the Import screen.
+A sheet with a `Preferred Type` column (Regional Summit, Court, …) is still scored on it. The GPY form doesn't ask for it, so it's ignored when absent. There's a **Download blank template** button on the Import screen that uses the same headers.
 
 ### 🔒 Privacy
 
-Everything runs on your computer. Nothing is uploaded, not even in the browser version. The app reads **only** the columns above. Emails, phone numbers, addresses, medical info and every other column are ignored and never stored, and the import screen lists exactly what was read and what was skipped.
+Everything runs on your computer. Nothing is uploaded, not even in the browser version. The app reads **only** the fields above. Birthday, gender, pronouns, email, address, emergency contacts, insurance, allergies, signatures and every other field are ignored and never stored, and the import screen lists exactly what was read and what was skipped.
 
 ---
 
@@ -62,11 +62,13 @@ Everything runs on your computer. Nothing is uploaded, not even in the browser v
 
 - **First-years never go into Advanced committees.** This is a hard rule. Returning delegates are steered toward them.
 - **Seniority picks** get a very strong boost, as long as the committee has room.
-- **Preferences:** committee type, topics and size are all scored.
-- **Schools are spread out** so no single school dominates a room.
+- **Interests** are matched against each committee's topics. Committees use the form's nine interests by default, and older words like "Healthcare" or "Security" still count.
+- **Sizes:** committees in a size the delegate ticked are favored, and ones they left unticked are avoided. "No preference" (or ticking all three) is neutral.
+- **Grade:** returning 11th and 12th graders get an extra nudge toward Advanced committees and pick before younger delegates.
+- **Delegations are spread out** so no single school dominates a room.
 - If every committee a delegate is allowed into is full, they're **flagged** so you can place them by hand.
 
-After each run you see how many delegates got their preferred type and topics, how many seniority picks were honored, and the largest share of any room held by one school.
+After each run you see how many delegates got one of their interests and a size they picked, how many seniority picks were honored, and the largest share of any room held by one school. Before a run, the app warns about committees whose seat count doesn't fit the form's size ranges, and interests no committee covers.
 
 ---
 

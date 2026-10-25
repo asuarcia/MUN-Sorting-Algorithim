@@ -15,32 +15,90 @@
   //                  returning delegates are nudged toward these.
   //   Beginner     → large, first-year-friendly bodies.
   //   Intermediate → everything else.
+  // Topics use the registration form's interest list (INTERESTS below) so a
+  // delegate's ticked interests line up with committees word for word.
   const COMMITTEES = [
-    { id:1,  name:"African Summit",                  type:"Regional Summit", topics:["Healthcare","Corruption","Industrialization"], size:"Small",  cap:30,  tier:"Intermediate" },
-    { id:2,  name:"Economic & Finance",              type:"Topic-based",     topics:["Economics","Trade","Banking"],                size:"Medium", cap:60,  tier:"Intermediate" },
-    { id:3,  name:"European Summit",                 type:"Regional Summit", topics:["Technology","Politics","Defense"],            size:"Small",  cap:30,  tier:"Intermediate" },
-    { id:4,  name:"Group of 20",                     type:"General",         topics:["Energy","Economics","Taxation"],              size:"Small",  cap:30,  tier:"Intermediate" },
-    { id:5,  name:"International Court of Justice",   type:"Court",           topics:["Law","International Relations"],               size:"Small",  cap:25,  tier:"Advanced" },
-    { id:6,  name:"International Security & Crime",   type:"Topic-based",     topics:["Security","Military","Law"],                   size:"Medium", cap:60,  tier:"Intermediate" },
-    { id:7,  name:"Nation Building",                 type:"Historical",      topics:["History","Politics","Economics"],             size:"Large",  cap:120, tier:"Beginner" },
-    { id:8,  name:"Press / Media",                   type:"Press",           topics:["Media","Journalism","Social Media"],          size:"Small",  cap:25,  tier:"Advanced" },
-    { id:9,  name:"Social, Humanitarian & Cultural", type:"Topic-based",     topics:["Human Rights","Environment","Humanitarian"],  size:"Medium", cap:60,  tier:"Intermediate" },
-    { id:10, name:"Asia-Pacific Summit",             type:"Regional Summit", topics:["Human Rights","Drug Policy","Environment"],   size:"Small",  cap:30,  tier:"Intermediate" },
-    { id:11, name:"Environment & Technology",        type:"Topic-based",     topics:["Environment","Technology","Energy"],          size:"Medium", cap:60,  tier:"Intermediate" },
-    { id:12, name:"General Assembly",                type:"General",         topics:["Population","Security","Humanitarian"],       size:"Large",  cap:120, tier:"Beginner" },
-    { id:13, name:"Historical Security Council",     type:"Historical",      topics:["History","Security","Human Rights"],          size:"Small",  cap:25,  tier:"Advanced" },
-    { id:14, name:"International Criminal Court",     type:"Court",           topics:["Law","History","Justice"],                    size:"Small",  cap:25,  tier:"Advanced" },
-    { id:15, name:"MENA Summit",                     type:"Regional Summit", topics:["Labor","Healthcare","Human Rights"],          size:"Small",  cap:30,  tier:"Intermediate" },
-    { id:16, name:"Pan-American Summit",             type:"Regional Summit", topics:["Law","Environment","Politics"],               size:"Small",  cap:30,  tier:"Intermediate" },
-    { id:17, name:"Security Council",                type:"Topic-based",     topics:["Security","Technology","Military"],           size:"Small",  cap:25,  tier:"Advanced" },
-    { id:18, name:"World Health Organization",       type:"Topic-based",     topics:["Healthcare","Humanitarian","Environment"],    size:"Medium", cap:60,  tier:"Intermediate" }
+    { id:1,  name:"African Summit",                  type:"Regional Summit", topics:["Health","Economic","Social Justice/Human Rights"],                 size:"Small",  cap:30,  tier:"Intermediate" },
+    { id:2,  name:"Economic & Finance",              type:"Topic-based",     topics:["Economic","Technology","Law"],                                     size:"Medium", cap:60,  tier:"Intermediate" },
+    { id:3,  name:"European Summit",                 type:"Regional Summit", topics:["Technology","Economic","Military/Conflict Resolution"],            size:"Small",  cap:30,  tier:"Intermediate" },
+    { id:4,  name:"Group of 20",                     type:"General",         topics:["Economic","Environment","Technology"],                             size:"Small",  cap:30,  tier:"Intermediate" },
+    { id:5,  name:"International Court of Justice",   type:"Court",           topics:["Law","Social Justice/Human Rights","History"],                     size:"Small",  cap:25,  tier:"Advanced" },
+    { id:6,  name:"International Security & Crime",   type:"Topic-based",     topics:["Military/Conflict Resolution","Law","Technology"],                size:"Medium", cap:60,  tier:"Intermediate" },
+    { id:7,  name:"Nation Building",                 type:"Historical",      topics:["History","Economic","Social Justice/Human Rights"],                size:"Large",  cap:120, tier:"Beginner" },
+    { id:8,  name:"Press / Media",                   type:"Press",           topics:["Social Media","Technology","Social Justice/Human Rights"],         size:"Small",  cap:25,  tier:"Advanced" },
+    { id:9,  name:"Social, Humanitarian & Cultural", type:"Topic-based",     topics:["Social Justice/Human Rights","Health","Environment"],              size:"Medium", cap:60,  tier:"Intermediate" },
+    { id:10, name:"Asia-Pacific Summit",             type:"Regional Summit", topics:["Environment","Economic","Military/Conflict Resolution"],           size:"Small",  cap:30,  tier:"Intermediate" },
+    { id:11, name:"Environment & Technology",        type:"Topic-based",     topics:["Environment","Technology","Social Media"],                         size:"Medium", cap:60,  tier:"Intermediate" },
+    { id:12, name:"General Assembly",                type:"General",         topics:["Social Justice/Human Rights","Military/Conflict Resolution","Health"], size:"Large", cap:120, tier:"Beginner" },
+    { id:13, name:"Historical Security Council",     type:"Historical",      topics:["History","Military/Conflict Resolution","Law"],                    size:"Small",  cap:25,  tier:"Advanced" },
+    { id:14, name:"International Criminal Court",     type:"Court",           topics:["Law","Social Justice/Human Rights","History"],                     size:"Small",  cap:25,  tier:"Advanced" },
+    { id:15, name:"MENA Summit",                     type:"Regional Summit", topics:["Military/Conflict Resolution","Health","Social Justice/Human Rights"], size:"Small", cap:30, tier:"Intermediate" },
+    { id:16, name:"Pan-American Summit",             type:"Regional Summit", topics:["Law","Environment","Economic"],                                    size:"Small",  cap:30,  tier:"Intermediate" },
+    { id:17, name:"Security Council",                type:"Topic-based",     topics:["Military/Conflict Resolution","Technology","Law"],                size:"Small",  cap:25,  tier:"Advanced" },
+    { id:18, name:"World Health Organization",       type:"Topic-based",     topics:["Health","Technology","Social Justice/Human Rights"],              size:"Medium", cap:60,  tier:"Intermediate" }
   ];
 
   const TYPE_OPTS = ["Regional Summit","Topic-based","Court","General","Historical","Press"];
   const SIZE_OPTS = ["Small","Medium","Large"];
   const TIER_OPTS = ["Beginner","Intermediate","Advanced"];
 
+  // ── The registration form (2027 GPY Model UN, Airtable) ──
+  // Defaults mirror the form so its export imports with no renaming.
+  const DEFAULT_CONFERENCE = "2027 GPY Model UN Conference";
+  // "What are your interests in Model UN?" (tick all that apply)
+  const INTERESTS = ["Technology","Health","Environment","Economic","Law",
+    "Social Justice/Human Rights","History","Military/Conflict Resolution","Social Media"];
+  // "Please select ALL committee sizes you are interested in"
+  const SIZE_RANGES = { Small:[20, 40], Medium:[40, 70], Large:[70, Infinity] };
+  const sizeLabel = s => SIZE_RANGES[s] ? `${s} (${SIZE_RANGES[s][0]}${SIZE_RANGES[s][1] === Infinity ? '+' : '–' + SIZE_RANGES[s][1]})` : s;
+  const GRADES = [9, 10, 11, 12];
+
   // ── Field normalisers ───────────────────────────────────
+  // Fold a topic onto the form's interest list, so committees written with
+  // older or looser words ("Healthcare", "Security", "Human Rights") still
+  // match what delegates ticked. Anything unrecognised is kept as typed.
+  const INTEREST_RULES = [
+    [/social media|journalis|press|\bmedia\b/,                                        'Social Media'],
+    [/social justice|human rights|humanitarian|refugee|civil rights|equality/,        'Social Justice/Human Rights'],
+    [/military|conflict|security|defen[cs]e|\bwar\b|peace|terroris|disarm/,           'Military/Conflict Resolution'],
+    [/tech|cyber|digital|\bai\b|artificial intelligence|space/,                       'Technology'],
+    [/health|medic|disease|pandemic/,                                                 'Health'],
+    [/environment|climate|energy|sustainab|ocean/,                                    'Environment'],
+    [/econom|trade|financ|bank|tax|labou?r|industr|development/,                      'Economic'],
+    [/histor/,                                                                        'History'],
+    [/\blaw\b|legal|justice|court|corruption|crime|criminal/,                         'Law']
+  ];
+  function normalizeTopic(raw) {
+    const t = String(raw || '').trim();
+    if (!t) return '';
+    const exact = INTERESTS.find(i => i.toLowerCase() === t.toLowerCase());
+    if (exact) return exact;
+    const r = t.toLowerCase();
+    for (const [re, interest] of INTEREST_RULES) if (re.test(r)) return interest;
+    return t;
+  }
+
+  // Multi-select sizes, e.g. "Small (20-40),Medium (40-70)". An empty list
+  // means no preference (also what "No preference on committee size" gives).
+  function matchSizes(raw) {
+    const out = [];
+    String(raw || '').split(/[;,|]/).forEach(part => {
+      const r = part.toLowerCase().trim();
+      if (!r || r.includes('no pref') || r.includes('any')) return;
+      let s = null;
+      if (r.startsWith('small') || r === 's') s = 'Small';
+      else if (r.startsWith('medium') || r === 'm') s = 'Medium';
+      else if (r.startsWith('large') || r === 'l') s = 'Large';
+      if (s && !out.includes(s)) out.push(s);
+    });
+    return out.length === SIZE_OPTS.length ? [] : out;   // ticked every size = no preference
+  }
+
+  function matchGrade(raw) {
+    const m = String(raw || '').match(/\d+/);
+    const g = m ? parseInt(m[0], 10) : NaN;
+    return g >= 6 && g <= 12 ? g : null;
+  }
   function matchType(raw) {
     const r = (raw || '').toLowerCase();
     if (r.includes('regional') || r.includes('summit'))   return 'Regional Summit';
@@ -52,13 +110,6 @@
     if (r.includes('topic') || r.includes('specialized')) return 'Topic-based';
     for (const t of TYPE_OPTS) if (t.toLowerCase() === r) return t;
     return 'Topic-based';
-  }
-
-  function matchSize(raw) {
-    const r = (raw || '').toLowerCase().trim();
-    if (r === 'small' || r === 's') return 'Small';
-    if (r === 'large' || r === 'l') return 'Large';
-    return 'Medium';
   }
 
   // Resolve a free-text "seniority pick" to a committee id, or null.
@@ -157,22 +208,44 @@
   }
   function toCSV(rows) { return rows.map(r => r.map(csvCell).join(',')).join('\r\n'); }
 
-  function findCol(headers, candidates) {
+  // Exact header names first; then, if none matched, the first header the
+  // fallback pattern hits — Airtable exports use the FIELD name, which an
+  // organizer may have worded differently from the form question.
+  function findCol(headers, candidates, pattern, taken) {
     for (const c of candidates) { const i = headers.indexOf(c); if (i !== -1) return i; }
+    if (pattern) for (let i = 0; i < headers.length; i++) if (!(taken && taken.has(i)) && pattern.test(headers[i])) return i;
     return -1;
   }
 
   // The ONLY columns the sorter consumes. Anything else in the upload
   // (email, phone, address, medical, DOB, …) is ignored and never stored.
+  // The first name in each list is the exact header on the 2027 GPY form.
   const COLUMN_CANDIDATES = {
+    preferred: ['preferred first name','preferred name','nickname','goes by'],
+    first:     ['first name','first','given name'],
+    last:      ['last name','last','surname','family name'],
     name:      ['name','full name','student name','delegate name','first and last name'],
-    school:    ['school','school name','institution','organization','delegation'],
-    year:      ['year','experience','delegate year','level','experience level','first-year/returning','returning?','status'],
-    type:      ['preferred type','type','committee type','pref type','preference type','committee preference'],
-    topics:    ['preferred topics','topics','pref topics','topic preferences','topic'],
-    size:      ['preferred size','size','pref size','committee size','size preference'],
+    school:    ['delegation','school','school name','institution','organization'],
+    grade:     ['grade','grade level','current grade','school grade'],
+    year:      ['are you a first year delegate or returning?','year','experience','delegate year','experience level','first-year/returning','returning?','status'],
+    topics:    ['what are your interests in model un?','interests','preferred topics','topics','pref topics','topic preferences','topic'],
+    size:      ['please select all committee sizes you are interested in','committee sizes','preferred size','pref size','committee size','size preference','size'],
+    type:      ['preferred type','committee type','pref type','preference type','committee preference','type'],
     seniority: ['seniority pick','direct pick','seniority assignment','direct assignment','guaranteed committee','guaranteed placement','senior pick','priority pick']
   };
+  const COLUMN_PATTERNS = {
+    preferred: /^preferred (first )?name/,
+    first:     /^first name/,
+    last:      /^last name/,
+    school:    /delegation|school/,
+    grade:     /^(current )?grade\b/,
+    year:      /first[- ]?year|returning/,
+    topics:    /\binterests\b|topic/,         // not "…sizes you are interested in"
+    size:      /committee sizes?\b/,
+    seniority: /seniority|guaranteed (committee|placement)/
+  };
+  // Columns that may be absent without a warning: the form doesn't ask for them.
+  const OPTIONAL_COLUMNS = ['preferred','first','last','name','grade','type','seniority'];
 
   /**
    * Parse a CSV string into delegate records, keeping ONLY needed fields.
@@ -189,14 +262,15 @@
 
     const cm = {}; const usedIdx = new Set();
     for (const key of Object.keys(COLUMN_CANDIDATES)) {
-      const idx = findCol(headers, COLUMN_CANDIDATES[key]);
-      cm[key] = idx;
-      if (idx !== -1) usedIdx.add(idx);
+      const idx = findCol(headers, COLUMN_CANDIDATES[key], COLUMN_PATTERNS[key], usedIdx);
+      cm[key] = usedIdx.has(idx) ? -1 : idx;
+      if (cm[key] !== -1) usedIdx.add(idx);
     }
 
     const usedColumns    = [...usedIdx].sort((a, b) => a - b).map(i => rawHeaders[i]);
     const ignoredColumns = rawHeaders.filter((h, i) => !usedIdx.has(i) && h.trim() !== '');
-    const missingColumns = Object.keys(cm).filter(k => cm[k] === -1 && k !== 'seniority');
+    const missingColumns = Object.keys(cm).filter(k => cm[k] === -1 && !OPTIONAL_COLUMNS.includes(k));
+    if (cm.name === -1 && cm.first === -1 && cm.last === -1) missingColumns.unshift('name');
 
     const students = []; const unmatchedPicks = [];
     for (let i = 1; i < rows.length; i++) {
@@ -204,16 +278,15 @@
       if (cols.every(v => !v)) continue;
       const get  = idx => (idx !== -1 ? (cols[idx] || '') : '').trim();
 
+      // Rosters use the name the delegate goes by: "Preferred First" + "Last".
+      const first = get(cm.preferred) || get(cm.first);
+      const name  = [first, get(cm.last)].filter(Boolean).join(' ') || get(cm.name);
+
       const rawYear = get(cm.year).toLowerCase();
       const year = (['first','1st','new','novice','freshman','beginner'].some(v => rawYear.includes(v)) || rawYear === 'f')
         ? 'first' : 'returning';
 
-      const prefType = get(cm.type) ? matchType(get(cm.type)) : 'Topic-based';
-
-      let prefTopics = get(cm.topics).split(/[;,|]/).map(t => t.trim()).filter(Boolean).slice(0, 3);
-      if (!prefTopics.length) prefTopics = ['Economics'];
-
-      const prefSize = get(cm.size) ? matchSize(get(cm.size)) : 'Medium';
+      const prefTopics = [...new Set(get(cm.topics).split(/[;,|]/).map(normalizeTopic).filter(Boolean))];
 
       const rawPick = get(cm.seniority);
       const seniorityPick = matchCommittee(rawPick, committees);
@@ -221,12 +294,13 @@
 
       students.push({
         id: students.length + 1,
-        name:   get(cm.name)   || `Delegate ${students.length + 1}`,
+        name:   name || `Delegate ${students.length + 1}`,
         school: get(cm.school) || 'Unknown School',
+        grade:  matchGrade(get(cm.grade)),
         year,
-        prefType,
+        prefType:  get(cm.type) ? matchType(get(cm.type)) : null,
         prefTopics,
-        prefSize,
+        prefSizes: matchSizes(get(cm.size)),
         seniorityPick,
         assigned: null,
         flagged: false,
@@ -237,11 +311,18 @@
   }
 
   // ── Scoring + assignment ────────────────────────────────
-  // Topics compare case-insensitively: "human rights" on the form matches
-  // "Human Rights" on the committee.
+  // Topics compare after folding onto the form's interest list, so "health"
+  // on the form matches "Healthcare" typed on a committee.
   function topicHits(student, committee) {
-    const ct = new Set(committee.topics.map(t => String(t).toLowerCase()));
-    return student.prefTopics.filter(t => ct.has(String(t).toLowerCase()));
+    const ct = new Set(committee.topics.map(t => normalizeTopic(t).toLowerCase()));
+    return student.prefTopics.filter(t => ct.has(normalizeTopic(t).toLowerCase()));
+  }
+
+  // Sizes the delegate ticked; [] = no preference. Sessions saved before the
+  // form allowed several sizes carry a single prefSize string instead.
+  function sizesOf(student) {
+    if (Array.isArray(student.prefSizes)) return student.prefSizes;
+    return student.prefSize ? [student.prefSize] : [];
   }
 
   // Hard constraints return -Infinity (delegate can never go there):
@@ -258,13 +339,15 @@
     // Seniority pick — strong boost (dominates normal prefs, still loses to a full/illegal committee)
     if (student.seniorityPick && committee.id === student.seniorityPick) s += 120;
 
-    // Stated preferences
-    if (student.prefType === committee.type) s += 40; else s -= 8;
+    // Stated preferences (type only when the sheet asked for it — the GPY form doesn't)
+    if (student.prefType) { if (student.prefType === committee.type) s += 40; else s -= 8; }
     s += topicHits(student, committee).length * 22;
-    if (student.prefSize === committee.size) s += 14;
+    const sizes = sizesOf(student);
+    if (sizes.length) { if (sizes.includes(committee.size)) s += 14; else s -= 10; }  // unticked = not interested
 
     // Experience fit (soft)
     if (student.year === 'returning' && committee.tier === 'Advanced') s += 18;
+    if (student.year === 'returning' && committee.tier === 'Advanced' && student.grade >= 11) s += 8;  // upperclassmen
     if (student.year === 'first'     && committee.tier === 'Beginner') s += 10;
 
     s -= (fills[committee.id] / committee.cap) * 12;                            // prefer emptier committees
@@ -310,11 +393,14 @@
     committees.forEach(c => { typeCount[c.type] = (typeCount[c.type] || 0) + 1; });
 
     // Placement order: seniority picks first (claim their seat), then delegates whose
-    // preferred committee type is rarer (fewer seats to fight over) go earlier.
+    // preferred committee type is rarer (fewer seats to fight over), then older
+    // grades first so seniors get first call on the seats they want.
     const sorted = students.filter(s => !s.locked).sort((a, b) => {
       const ap = a.seniorityPick ? 0 : 1, bp = b.seniorityPick ? 0 : 1;
       if (ap !== bp) return ap - bp;
-      return (typeCount[a.prefType] || 0) - (typeCount[b.prefType] || 0);
+      const at = a.prefType ? (typeCount[a.prefType] || 0) : 0, bt = b.prefType ? (typeCount[b.prefType] || 0) : 0;
+      if (at !== bt) return at - bt;
+      return (b.grade || 0) - (a.grade || 0);
     });
 
     for (const student of sorted) {
@@ -345,10 +431,10 @@
       if (p) why.push(student.year === 'first' && p.tier === 'Advanced'
         ? `pick (${p.name}) is closed to first-years` : `pick (${p.name}) was full`);
     }
-    if (student.prefType === c.type) why.push('preferred type');
+    if (student.prefType && student.prefType === c.type) why.push('preferred type');
     const hits = topicHits(student, c);
-    if (hits.length) why.push('topics: ' + hits.join(', '));
-    if (student.prefSize === c.size) why.push('preferred size');
+    if (hits.length) why.push('interests: ' + hits.join(', '));
+    if (sizesOf(student).includes(c.size)) why.push('preferred size');
     if (!why.length) why.push('best open seat');
     return why.join(' · ');
   }
@@ -373,13 +459,16 @@
       });
     });
 
+    // A rate over only the delegates who answered that question; null if nobody did.
+    const rate = (asked, hit) => asked.length ? Math.round(asked.filter(hit).length / asked.length * 100) : null;
+
     return {
       placed: placed.length,
       flagged: students.filter(s => s.flagged).length,
       seats: committees.reduce((a, c) => a + c.cap, 0),
-      typeMatch:  pct(placed.filter(s => s.prefType === byId[s.assigned].type).length),
+      typeMatch:  rate(placed.filter(s => s.prefType), s => s.prefType === byId[s.assigned].type),
       topicMatch: pct(placed.filter(s => topicHits(s, byId[s.assigned]).length > 0).length),
-      sizeMatch:  pct(placed.filter(s => s.prefSize === byId[s.assigned].size).length),
+      sizeMatch:  rate(placed.filter(s => sizesOf(s).length), s => sizesOf(s).includes(byId[s.assigned].size)),
       picksHonored: picks.filter(s => s.assigned === s.seniorityPick).length,
       picksTotal: picks.length,
       maxSchoolShare: top ? { school: top.school, committee: top.committee, n: top.n, of: top.of, pct: Math.round(top.share * 100) } : null
@@ -410,9 +499,18 @@
       if (n > c.cap) out.push({ level:'warn', msg:`${n} seniority picks for ${c.name}, which has ${c.cap} seats — ${n - c.cap} won't get their pick.` });
     });
     const types = new Set(committees.map(c => c.type));
-    const orphan = [...new Set(students.map(s => s.prefType).filter(t => !types.has(t)))];
+    const orphan = [...new Set(students.map(s => s.prefType).filter(t => t && !types.has(t)))];
     if (orphan.length)
       out.push({ level:'info', msg:`No committee is of type ${orphan.join(', ')} — delegates who asked for it are matched on topics and size instead.` });
+    // The form promises sizes by seat count; flag committees that break that promise.
+    const offSize = committees.filter(c => SIZE_RANGES[c.size] && (c.cap < SIZE_RANGES[c.size][0] || c.cap > SIZE_RANGES[c.size][1]));
+    if (offSize.length)
+      out.push({ level:'info', msg:`Seat counts outside the size the form describes: ${offSize.map(c => `${c.name} is ${c.size} with ${c.cap} seats (form says ${sizeLabel(c.size).replace(/^\w+ /, '')})`).join('; ')}.` });
+    // Interests no committee covers can never be matched.
+    const covered = new Set(committees.flatMap(c => c.topics.map(t => normalizeTopic(t))));
+    const uncovered = [...new Set(students.flatMap(s => s.prefTopics))].filter(t => !covered.has(t));
+    if (uncovered.length)
+      out.push({ level:'info', msg:`No committee lists ${uncovered.join(', ')} as a topic, so delegates interested in ${uncovered.length === 1 ? 'it' : 'them'} can't be matched on it.` });
     return out;
   }
 
@@ -438,7 +536,8 @@
   // ── Export ──────────────────────────────────────────────
   const api = {
     COMMITTEES, TYPE_OPTS, SIZE_OPTS, TIER_OPTS, COLUMN_CANDIDATES,
-    matchType, matchSize, matchCommittee, acronym,
+    DEFAULT_CONFERENCE, INTERESTS, SIZE_RANGES, GRADES, sizeLabel,
+    matchType, matchSizes, matchGrade, normalizeTopic, sizesOf, matchCommittee, acronym,
     parseCSV, parseCSVRow, csvCell, toCSV, findCol,
     parseDelegates, topicHits, scoreMatch, runAssignment,
     explainPlacement, metrics, preflight, validateCommittees

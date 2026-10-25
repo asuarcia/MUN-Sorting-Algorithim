@@ -1,7 +1,7 @@
 {
   "name": "mun-committee-sorter",
   "productName": "MUN Committee Sorter",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Offline desktop tool that sorts Model UN delegates into committees from a registration spreadsheet. All processing stays on the machine.",
   "main": "main.js",
   "author": "asuarcia",

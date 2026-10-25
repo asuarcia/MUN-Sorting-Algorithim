@@ -596,16 +596,16 @@
         </div>
 
         <div class="import-info">
-          <div class="import-info-title">Columns the sorter reads</div>
-          <div class="format-row"><div class="format-col"><div class="format-name">Name</div><div class="format-values">Full name of delegate</div></div></div>
-          <div class="format-row"><div class="format-col"><div class="format-name">School</div><div class="format-values">School or delegation (used to spread schools across rooms)</div></div></div>
-          <div class="format-row"><div class="format-col"><div class="format-name">Year</div><div class="format-values">first · 1st · new · novice → First-year<br>anything else → Returning</div></div></div>
-          <div class="format-row"><div class="format-col"><div class="format-name">Preferred Type</div><div class="format-values">Regional Summit · Topic-based · Court<br>General · Historical · Press</div></div></div>
-          <div class="format-row"><div class="format-col"><div class="format-name">Preferred Topics</div><div class="format-values">Up to 3, separated by semicolons or commas<br>e.g. Law;History;Justice</div></div></div>
-          <div class="format-row"><div class="format-col"><div class="format-name">Preferred Size</div><div class="format-values">Small · Medium · Large</div></div></div>
-          <div class="format-row"><div class="format-col"><div class="format-name">Seniority Pick <span style="color:var(--text-3);font-weight:400">· optional</span></div><div class="format-values">Committee name or acronym (e.g. ICJ, Security Council)<br>strongly favored when present</div></div></div>
+          <div class="import-info-title">Fields the sorter reads from the registration form</div>
+          <div class="format-row"><div class="format-col"><div class="format-name">First Name · Last Name · Preferred First Name</div><div class="format-values">Rosters use the preferred first name when one is given</div></div></div>
+          <div class="format-row"><div class="format-col"><div class="format-name">Delegation</div><div class="format-values">Used to spread each delegation across rooms</div></div></div>
+          <div class="format-row"><div class="format-col"><div class="format-name">Grade</div><div class="format-values">9 · 10 · 11 · 12 (upperclassmen get first call on seats)</div></div></div>
+          <div class="format-row"><div class="format-col"><div class="format-name">Are you a first year delegate or returning?</div><div class="format-values">First year delegate · Returning<br>first-years are never placed in Advanced committees</div></div></div>
+          <div class="format-row"><div class="format-col"><div class="format-name">What are your interests in Model UN?</div><div class="format-values" id="interest-list"></div></div></div>
+          <div class="format-row"><div class="format-col"><div class="format-name">Please select ALL committee sizes you are interested in</div><div class="format-values">Small (20-40) · Medium (40-70) · Large (70+)<br>No preference on committee size</div></div></div>
+          <div class="format-row"><div class="format-col"><div class="format-name">Seniority Pick <span style="color:var(--text-3);font-weight:400">· optional, add it in Airtable</span></div><div class="format-values">Committee name or acronym (e.g. ICJ, Security Council)<br>strongly favored when present</div></div></div>
           <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);font-size:11.5px;color:var(--text-3);line-height:1.7">
-            Headers are case-insensitive and can be in any order. Common variants like "Full Name" or "Delegation" are recognized. Any column not listed above (email, phone, address, medical, etc.) is ignored and never stored. Importing replaces the current delegates and clears any assignment.
+            Export the Airtable grid view as CSV (or Excel) and drop it here. No renaming needed. Headers are case-insensitive, in any order, and close variants are recognized. Every other field (birthday, address, emergency contacts, insurance, allergies, signatures…) is ignored and never stored. Importing replaces the current delegates and clears any assignment.
           </div>
         </div>
       </div>
@@ -630,7 +630,7 @@
       <div class="page-header anim d1">
         <div class="page-eyebrow">Step 2 · Committees</div>
         <h1 class="page-title">Set Up Your Committees</h1>
-        <p class="page-sub">Match this list to your conference. <b style="color:var(--text)">Advanced</b> committees never receive first-years; <b style="color:var(--text)">Beginner</b> committees are favored for them. Topics are compared against what delegates wrote on the form, so use the same words. Your committee setup is remembered on this computer.</p>
+        <p class="page-sub">Match this list to your conference. <b style="color:var(--text)">Advanced</b> committees never receive first-years; <b style="color:var(--text)">Beginner</b> committees are favored for them. Topics are matched against the interests delegates ticked on the form, and sizes follow the form's seat ranges. Your committee setup is remembered on this computer.</p>
       </div>
 
       <div class="cedit-bar anim d2" id="cedit-bar">
@@ -650,6 +650,7 @@
           <tbody id="cedit-body"></tbody>
         </table>
       </div>
+      <p class="page-sub" id="cedit-hint" style="margin-top:14px;font-size:12px"></p>
     </div>
 
     <!-- ═══════════ ASSIGNMENT ═══════════ -->
@@ -657,7 +658,7 @@
       <div class="assign-hero anim d1">
         <div class="assign-icon">⚡</div>
         <h2 class="assign-title">Run Committee Assignment</h2>
-        <p class="assign-desc">Matches every delegate using their type, topic, and size preferences while keeping first-years out of advanced committees, steering returning delegates toward them, honoring seniority picks, and spreading schools evenly.</p>
+        <p class="assign-desc">Matches every delegate to the interests and committee sizes they picked on the registration form, keeps first-years out of advanced committees, steers returning upperclassmen toward them, honors seniority picks, and spreads each delegation evenly.</p>
         <button class="run-btn" id="run-btn" onclick="runAssignmentUI()">
           <span id="btn-icon">▶</span>
           <span id="btn-text">Run Assignment</span>
@@ -674,8 +675,8 @@
       <div class="res-cards" id="res-cards">
         <div class="res-card"><div class="res-num" id="r-placed" style="color:var(--green)">0</div><div class="res-lbl">Placed</div></div>
         <div class="res-card"><div class="res-num" id="r-flagged" style="color:var(--red)">0</div><div class="res-lbl">Flagged</div></div>
-        <div class="res-card"><div class="res-num" id="r-type" style="color:var(--gold)">—</div><div class="res-lbl">Got preferred type</div></div>
-        <div class="res-card"><div class="res-num" id="r-topic" style="color:var(--blue)">—</div><div class="res-lbl">Got ≥1 preferred topic</div></div>
+        <div class="res-card"><div class="res-num" id="r-size" style="color:var(--gold)">—</div><div class="res-lbl">Got a size they picked</div></div>
+        <div class="res-card"><div class="res-num" id="r-topic" style="color:var(--blue)">—</div><div class="res-lbl">Got ≥1 of their interests</div></div>
       </div>
       <div class="res-sub" id="res-sub" style="display:none"></div>
 
@@ -731,7 +732,7 @@
           <thead>
             <tr>
               <th>#</th><th>Name</th><th>School</th><th>Year</th>
-              <th>Pref. Type</th><th>Topics (ranked)</th><th>Size</th><th>Assigned To</th>
+              <th>Grade</th><th>Interests</th><th>Sizes</th><th>Assigned To</th>
             </tr>
           </thead>
           <tbody id="delegate-tbody"></tbody>
@@ -775,8 +776,10 @@ function saveSettings() {
 const clone = x => JSON.parse(JSON.stringify(x));
 
 const settings   = loadSettings();
-let CONFERENCE   = settings.conference || 'Model UN Conference';
-let COMMITTEES   = (Array.isArray(settings.committees) && !E.validateCommittees(settings.committees).length)
+// Defaults match the 2027 GPY registration form. A saved name or committee list
+// wins only if the organizer actually changed it (the old generic default doesn't count).
+let CONFERENCE   = (settings.conference && settings.conference !== 'Model UN Conference') ? settings.conference : E.DEFAULT_CONFERENCE;
+let COMMITTEES   = (settings.committeesTouched && Array.isArray(settings.committees) && !E.validateCommittees(settings.committees).length)
   ? settings.committees : clone(E.COMMITTEES);
 let STUDENTS     = [];
 let IS_SAMPLE    = true;
@@ -821,26 +824,29 @@ const SCHOOLS = [
   "Kennedy International","Westbrook Academy","Eastside High School","Northgate School","Southfield Prep",
   "Riverside Academy","Lakewood High","Hillcrest School","Sunnyvale Preparatory","Greenwood Academy",
   "Clearwater High","Oakridge School","Pinecrest Academy","Cedarville High","Elmwood Prep"];
-const ALL_TOPICS = ["Healthcare","Economics","Environment","Security","Law","Human Rights",
-  "Technology","History","Media","Labor","Energy","Defense","Politics","Banking",
-  "Trade","Humanitarian","Justice","Social Media","Industrialization","Corruption","Drug Policy"];
 
 function pick(arr, r)  { return arr[Math.floor(r() * arr.length)]; }
 function shuffle(a, r) { const b=[...a]; for(let i=b.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; }
 
+// Shaped like answers to the registration form: grade 9-12 (first-years skew
+// young), 1-5 ticked interests, and a set of sizes or no size preference.
 function genStudents(n = 820) {
   const r = mkRand(7);
+  const FIRST_YEAR_ODDS = { 9: 0.7, 10: 0.45, 11: 0.25, 12: 0.15 };
   return Array.from({ length: n }, (_, i) => {
-    const year = r() < 0.38 ? 'first' : 'returning';
+    const grade = pick([9, 9, 10, 10, 11, 11, 12], r);
+    const year = r() < FIRST_YEAR_ODDS[grade] ? 'first' : 'returning';
     const seniorityPick = (year === 'returning' && r() < 0.06) ? pick(COMMITTEES, r).id : null;
+    const sizes = r() < 0.2 ? [] : SIZE_OPTS.filter(() => r() < 0.5);
     return {
       id: i + 1,
       name: `${pick(FNAME,r)} ${pick(LNAME,r)}`,
       school: pick(SCHOOLS, r),
+      grade,
       year,
-      prefType: pick(TYPE_OPTS, r),
-      prefTopics: shuffle([...ALL_TOPICS], r).slice(0, 3),
-      prefSize: pick(SIZE_OPTS, r),
+      prefType: null,
+      prefTopics: shuffle([...E.INTERESTS], r).slice(0, 1 + Math.floor(r() * 5)),
+      prefSizes: sizes.length === SIZE_OPTS.length ? [] : sizes,
       seniorityPick,
       assigned: null, flagged: false, locked: false
     };
@@ -859,10 +865,12 @@ function typePill(type, small = false) {
   return `<span class="type-pill" style="background:${st.bg};color:${st.fg};${small?'font-size:9.5px;padding:2px 7px':''}">${esc(type)}</span>`;
 }
 const yearPill = s => `<span class="pill ${s.year==='first'?'pill-first':'pill-ret'}">${s.year==='first'?'First':'Returning'}</span>`;
+const sizesText = s => { const z = E.sizesOf(s); return z.length ? z.join(', ') : 'No preference'; };
+const gradeCell = s => `<td class="mono" style="color:var(--text-2);font-size:12px">${s.grade ?? '—'}</td>`;
 
 function renderHeader() {
   document.getElementById('logo-name').textContent = CONFERENCE;
-  document.getElementById('logo-mark').textContent = (CONFERENCE.trim()[0] || 'M').toUpperCase();
+  document.getElementById('logo-mark').textContent = ((CONFERENCE.match(/[A-Za-z]/) || ['M'])[0]).toUpperCase();
   document.getElementById('conf-tag').textContent = '✎ Rename';
   document.title = `${CONFERENCE} — Committee Sorter`;
 }
@@ -877,7 +885,7 @@ function renderGrid() {
       <div class="c-card-top">
         <div>
           <div class="c-name">${esc(c.name)}</div>
-          <div class="size-tag">${esc(c.size)} · ${c.cap} seats · ${esc(c.tier)}</div>
+          <div class="size-tag">${esc(E.sizeLabel(c.size))} · ${c.cap} seats · ${esc(c.tier)}</div>
         </div>
         ${typePill(c.type)}
       </div>
@@ -995,10 +1003,11 @@ function renderResults() {
   const m = E.metrics(STUDENTS, COMMITTEES);
   document.getElementById('r-placed').textContent  = m.placed;
   document.getElementById('r-flagged').textContent = m.flagged;
-  document.getElementById('r-type').textContent    = m.typeMatch + '%';
+  document.getElementById('r-size').textContent    = m.sizeMatch == null ? '—' : m.sizeMatch + '%';
   document.getElementById('r-topic').textContent   = m.topicMatch + '%';
   document.getElementById('res-cards').style.display = 'grid';
-  const sub = [`${m.sizeMatch}% got their preferred size`];
+  const sub = [];
+  if (m.typeMatch != null) sub.push(`${m.typeMatch}% got their preferred type`);
   if (m.picksTotal) sub.push(`${m.picksHonored} of ${m.picksTotal} seniority picks honored`);
   if (m.maxSchoolShare) sub.push(`largest single-school share of a room: ${m.maxSchoolShare.pct}% (${esc(m.maxSchoolShare.school)} in ${esc(m.maxSchoolShare.committee)}, ${m.maxSchoolShare.n} of ${m.maxSchoolShare.of})`);
   const subEl = document.getElementById('res-sub');
@@ -1049,13 +1058,13 @@ function renderFlagTable() {
   const sec = document.getElementById('flag-section');
   if (!flagged.length) { sec.style.display = 'none'; return; }
   sec.style.display = 'block';
-  let html = `<table><thead><tr><th>#</th><th>Name</th><th>School</th><th>Year</th><th>Pref. Type</th><th>Pref. Topics</th><th>Place in</th></tr></thead><tbody>`;
+  let html = `<table><thead><tr><th>#</th><th>Name</th><th>School</th><th>Grade</th><th>Year</th><th>Interests</th><th>Place in</th></tr></thead><tbody>`;
   flagged.forEach(s => {
     html += `<tr><td class="mono" style="color:var(--text-3);font-size:12px">${s.id}</td>
       <td style="font-weight:500">${esc(s.name)}</td>
       <td style="color:var(--text-2);font-size:12.5px">${esc(s.school)}</td>
+      ${gradeCell(s)}
       <td>${yearPill(s)}</td>
-      <td>${typePill(s.prefType, true)}</td>
       <td style="color:var(--text-2);font-size:12px">${esc(s.prefTopics.join(', '))}</td>
       <td><div class="place-ui">
         <select class="flt" id="placesel-${s.id}"><option value="">Choose committee…</option>${committeeOptions(s, null)}</select>
@@ -1147,9 +1156,9 @@ function renderDelegates() {
       <td style="font-weight:500">${esc(s.name)}${pickC ? `<div class="reason">★ pick: ${esc(pickC.name)}</div>` : ''}</td>
       <td style="color:var(--text-2);font-size:12.5px">${esc(s.school)}</td>
       <td>${yearPill(s)}</td>
-      <td>${typePill(s.prefType, true)}</td>
+      ${gradeCell(s)}
       <td style="color:var(--text-2);font-size:12px">${esc(s.prefTopics.join(', '))}</td>
-      <td style="color:var(--text-3);font-size:12px">${esc(s.prefSize)}</td>
+      <td style="color:var(--text-3);font-size:12px">${esc(sizesText(s))}</td>
       <td>${cell}</td>
     </tr>`;
   }).join('');
@@ -1202,7 +1211,7 @@ function renderDrawerContent() {
         <div>
           <div>${typePill(c.type)}</div>
           <div class="drawer-name">${esc(c.name)}</div>
-          <div class="drawer-meta">${esc(c.size)} · ${c.cap} seats · ${esc(c.tier)} · ${schoolSet.size} schools${cnt ? ` · ${firsts} first-year / ${cnt - firsts} returning` : ''}</div>
+          <div class="drawer-meta">${esc(E.sizeLabel(c.size))} · ${c.cap} seats · ${esc(c.tier)} · ${schoolSet.size} schools${cnt ? ` · ${firsts} first-year / ${cnt - firsts} returning` : ''}</div>
         </div>
         <button class="drawer-close" onclick="closeDrawer()">✕</button>
       </div>
@@ -1282,18 +1291,20 @@ function renderCommitteeEditor() {
       <td><input value="${esc(c.name)}" oninput="editC(${i},'name',this.value)" placeholder="Committee name"></td>
       <td><select onchange="editC(${i},'type',this.value)">${opts(TYPE_OPTS, c.type)}</select></td>
       <td><select onchange="editC(${i},'tier',this.value)">${opts(TIER_OPTS, c.tier)}</select></td>
-      <td><select onchange="editC(${i},'size',this.value)">${opts(SIZE_OPTS, c.size)}</select></td>
+      <td><select onchange="editC(${i},'size',this.value)">${SIZE_OPTS.map(o => `<option value="${o}"${o === c.size ? ' selected' : ''}>${E.sizeLabel(o)}</option>`).join('')}</select></td>
       <td><input class="num" type="number" min="1" step="1" value="${c.cap}" oninput="editC(${i},'cap',this.value)"></td>
-      <td><input value="${esc(c.topics.join('; '))}" oninput="editC(${i},'topics',this.value)" placeholder="e.g. Law; Security"></td>
+      <td><input value="${esc(c.topics.join('; '))}" oninput="editC(${i},'topics',this.value)" placeholder="e.g. Law; History"></td>
       <td><button class="del" title="Remove committee" onclick="removeCommittee(${i})">✕</button></td>
     </tr>`).join('');
+  document.getElementById('cedit-hint').innerHTML =
+    `Interests on the form: ${E.INTERESTS.map(t => `<span class="topic-chip">${esc(t)}</span>`).join(' ')}. Other words still work: “Healthcare” counts as Health, “Security” as Military/Conflict Resolution.`;
   updateCommitteeSummary();
 }
 
 function editC(i, key, val) {
   const c = committeeDraft[i];
   if (key === 'cap') c.cap = Number(val);
-  else if (key === 'topics') c.topics = val.split(/[;,]/).map(t => t.trim()).filter(Boolean);
+  else if (key === 'topics') c.topics = val.split(';').map(t => t.trim()).filter(Boolean);
   else c[key] = val;
   updateCommitteeSummary();
 }
@@ -1442,14 +1453,14 @@ function showCSVPreview(res, filename) {
     <span><strong>${students.length - firstYr}</strong> returning</span>
     <span><strong>${picks}</strong> seniority pick${picks!==1?'s':''}</span>`;
 
-  const LABEL = { name:'Name', school:'School', year:'Year', type:'Preferred Type', topics:'Preferred Topics', size:'Preferred Size' };
+  const LABEL = { name:'First / Last Name', school:'Delegation', year:'First year or returning', topics:'Interests', size:'Committee sizes' };
   const notes = [];
   const ign = res.ignoredColumns;
   notes.push(`<div class="notice ok"><span class="notice-ico">🔒</span><span><b>Confidentiality.</b> Read only what the sorter needs: <span style="color:var(--text)">${esc(res.usedColumns.join(', ') || '—')}</span>. ${ign.length
       ? `<b>${ign.length}</b> other column${ign.length!==1?'s':''} ignored and never stored: <span style="color:var(--text-3)">${esc(ign.join(', '))}</span>.`
       : 'No extra columns were present.'}</span></div>`);
   if (res.missingColumns.length) {
-    const fallback = { name:'"Delegate N"', school:'"Unknown School" (school spreading won\'t work)', year:'everyone treated as returning', type:'Topic-based', topics:'Economics', size:'Medium' };
+    const fallback = { name:'"Delegate N"', school:'"Unknown School" (delegation spreading won\'t work)', year:'everyone treated as returning', topics:'no interest matching', size:'no size preference' };
     notes.push(`<div class="notice warn"><span class="notice-ico">⚠</span><span><b>Couldn't find ${res.missingColumns.length === 1 ? 'a column' : 'columns'} for: ${res.missingColumns.map(k => LABEL[k]).join(', ')}.</b> Rename the header${res.missingColumns.length === 1 ? '' : 's'} to match the list above and re-import, or continue with defaults: ${res.missingColumns.map(k => `${LABEL[k]} → ${esc(fallback[k])}`).join('; ')}.</span></div>`);
   }
   if (res.unmatchedPicks.length) {
@@ -1462,16 +1473,16 @@ function showCSVPreview(res, filename) {
   document.getElementById('preview-notes').innerHTML = notes.join('');
 
   const preview = students.slice(0, 8);
-  let html = `<table><thead><tr><th>#</th><th>Name</th><th>School</th><th>Year</th><th>Pref. Type</th><th>Topics</th><th>Size</th><th>Pick</th></tr></thead><tbody>`;
+  let html = `<table><thead><tr><th>#</th><th>Name</th><th>Delegation</th><th>Grade</th><th>Year</th><th>Interests</th><th>Sizes</th><th>Pick</th></tr></thead><tbody>`;
   preview.forEach(s => {
     html += `<tr>
       <td class="mono" style="color:var(--text-3);font-size:12px">${s.id}</td>
       <td style="font-weight:500">${esc(s.name)}</td>
       <td style="color:var(--text-2);font-size:12.5px">${esc(s.school)}</td>
+      ${gradeCell(s)}
       <td>${yearPill(s)}</td>
-      <td>${typePill(s.prefType, true)}</td>
       <td style="color:var(--text-2);font-size:12px">${esc(s.prefTopics.join(', '))}</td>
-      <td style="color:var(--text-3);font-size:12px">${esc(s.prefSize)}</td>
+      <td style="color:var(--text-3);font-size:12px">${esc(sizesText(s))}</td>
       <td style="color:var(--text-2);font-size:12px">${esc(cById(s.seniorityPick)?.name || '')}</td>
     </tr>`;
   });
@@ -1513,12 +1524,13 @@ function useSampleData() {
 }
 
 function downloadTemplate() {
+  // Same headers and answer wording as the Airtable registration form's export.
   download('mun-registration-template.csv', E.toCSV([
-    ['Name','School','Year','Preferred Type','Preferred Topics','Preferred Size','Seniority Pick'],
-    ['Alex Smith','Lincoln High School','First','Court','Law;History;Justice','Small',''],
-    ['Maria Garcia','Jefferson Academy','Returning','Regional Summit','Healthcare;Human Rights;Labor','Medium','Security Council'],
-    ['Jordan Lee','Roosevelt Prep','First','Topic-based','Economics;Trade;Banking','Large',''],
-    ['Priya Patel','Westbrook Academy','Returning','Historical','History;Security;Politics','Small','ICJ']
+    ['First Name','Last Name','Preferred First Name','Delegation','Grade','Are you a first year delegate or returning?','What are your interests in Model UN?','Please select ALL committee sizes you are interested in','Seniority Pick'],
+    ['Alex','Smith','','Lincoln High School','9','First year delegate','Law,History','Small (20-40),Medium (40-70)',''],
+    ['Maria','Garcia','Mari','Jefferson Academy','12','Returning','Health,Social Justice/Human Rights','Small (20-40)','Security Council'],
+    ['Jordan','Lee','','Roosevelt Prep','10','First year delegate','Economic,Technology,Environment','No preference on committee size',''],
+    ['Priya','Patel','','Westbrook Academy','11','Returning','History,Military/Conflict Resolution','Small (20-40)','ICJ']
   ]), 'text/csv');
 }
 
@@ -1538,12 +1550,13 @@ function download(filename, content, type) {
 function delegateRow(s) {
   const c = cById(s.assigned);
   return {
-    'ID': s.id, 'Name': s.name, 'School': s.school,
+    'ID': s.id, 'Name': s.name, 'Delegation': s.school, 'Grade': s.grade ?? '',
     'Year': s.year === 'first' ? 'First-year' : 'Returning',
     'Committee': c ? c.name : '',
     'Status': s.flagged ? 'Flagged: needs a seat' : s.locked ? 'Placed by hand' : c ? 'Assigned' : 'Not assigned',
     'Why': E.explainPlacement(s, COMMITTEES),
-    'Pref Type': s.prefType, 'Pref Topics': s.prefTopics.join('; '), 'Pref Size': s.prefSize,
+    'Interests': s.prefTopics.join('; '), 'Sizes': sizesText(s),
+    ...(s.prefType ? { 'Pref Type': s.prefType } : {}),
     'Seniority Pick': cById(s.seniorityPick)?.name || ''
   };
 }
@@ -1558,8 +1571,8 @@ function exportCommitteeRoster(id) {
   const c = cById(id);
   const here = STUDENTS.filter(s => s.assigned === id).sort((a, b) => a.school.localeCompare(b.school) || a.name.localeCompare(b.name));
   download(`${slug(c.name)}-roster.csv`, '﻿' + E.toCSV([
-    ['Name','School','Year'],
-    ...here.map(s => [s.name, s.school, s.year === 'first' ? 'First-year' : 'Returning'])
+    ['Name','Delegation','Grade','Year'],
+    ...here.map(s => [s.name, s.school, s.grade ?? '', s.year === 'first' ? 'First-year' : 'Returning'])
   ]), 'text/csv');
 }
 
@@ -1588,20 +1601,21 @@ function exportWorkbook() {
     return { 'Committee': c.name, 'Type': c.type, 'Level': c.tier, 'Size': c.size, 'Seats': c.cap,
       'Assigned': here.length, 'First-years': here.filter(s => s.year === 'first').length,
       'Schools': new Set(here.map(s => s.school)).size, 'Topics': c.topics.join('; ') };
-  }).concat([{}, { 'Committee': `${m.placed} placed · ${m.flagged} flagged · ${m.typeMatch}% got preferred type · ${m.topicMatch}% got a preferred topic` }]),
+  }).concat([{}, { 'Committee': [`${m.placed} placed`, `${m.flagged} flagged`, `${m.topicMatch}% got one of their interests`,
+    m.sizeMatch != null && `${m.sizeMatch}% got a size they picked`, m.typeMatch != null && `${m.typeMatch}% got their preferred type`].filter(Boolean).join(' · ') }]),
   [34, 16, 13, 9, 7, 9, 11, 9, 40]);
 
   const all = [...STUDENTS].sort(bySchoolName).map(delegateRow);
-  add('All Delegates', all, [6, 24, 26, 11, 32, 18, 44, 16, 34, 9, 28]);
+  add('All Delegates', all, [6, 24, 26, 7, 11, 32, 18, 44, 40, 22, 28]);
   add('By School', [...STUDENTS].sort(bySchoolName).map(s => ({
-    'School': s.school, 'Name': s.name, 'Year': s.year === 'first' ? 'First-year' : 'Returning',
+    'Delegation': s.school, 'Name': s.name, 'Grade': s.grade ?? '', 'Year': s.year === 'first' ? 'First-year' : 'Returning',
     'Committee': cById(s.assigned)?.name || (s.flagged ? 'NEEDS A SEAT' : '')
-  })), [28, 24, 11, 34]);
+  })), [28, 24, 7, 11, 34]);
   COMMITTEES.forEach(c => add(c.name, STUDENTS.filter(s => s.assigned === c.id).sort(bySchoolName).map((s, i) => ({
-    '#': i + 1, 'Name': s.name, 'School': s.school, 'Year': s.year === 'first' ? 'First-year' : 'Returning'
-  })), [5, 26, 28, 11]));
+    '#': i + 1, 'Name': s.name, 'Delegation': s.school, 'Grade': s.grade ?? '', 'Year': s.year === 'first' ? 'First-year' : 'Returning'
+  })), [5, 26, 28, 7, 11]));
   const flagged = STUDENTS.filter(s => s.flagged);
-  if (flagged.length) add('Flagged', flagged.map(delegateRow), [6, 24, 26, 11, 32, 18, 44, 16, 34, 9, 28]);
+  if (flagged.length) add('Flagged', flagged.map(delegateRow), [6, 24, 26, 7, 11, 32, 18, 44, 40, 22, 28]);
 
   const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   download(`${slug(CONFERENCE)}-rosters.xlsx`, new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
@@ -1628,9 +1642,13 @@ function loadSessionFile(e) {
     if (d.app !== 'mun-sorter' || d.kind !== 'session') throw new Error('not a session file from this app');
     const errs = E.validateCommittees(d.committees);
     if (errs.length) throw new Error(errs[0]);
-    const KEYS = ['id','name','school','year','prefType','prefTopics','prefSize','seniorityPick','assigned','flagged','locked'];
-    const students = (d.students || []).map(s => Object.fromEntries(KEYS.map(k => [k, s[k] ?? (k === 'prefTopics' ? [] : null)])));
-    students.forEach(s => { s.flagged = !!s.flagged; s.locked = !!s.locked; });
+    const KEYS = ['id','name','school','grade','year','prefType','prefTopics','prefSizes','seniorityPick','assigned','flagged','locked'];
+    // Sessions saved before the form update carry one prefSize and free-text topics.
+    const students = (d.students || []).map(s => ({ ...Object.fromEntries(KEYS.map(k => [k, s[k] ?? null])), prefSizes: E.sizesOf(s) }));
+    students.forEach(s => {
+      s.flagged = !!s.flagged; s.locked = !!s.locked;
+      s.prefTopics = [...new Set((s.prefTopics || []).map(E.normalizeTopic).filter(Boolean))];
+    });
     CONFERENCE = d.conference || CONFERENCE;
     COMMITTEES = d.committees; committeeDraft = clone(COMMITTEES);
     saveSettings();
@@ -1677,6 +1695,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(
 
 // ─── Init ─────────────────────────────────────────────────
 renderLegend();
+document.getElementById('interest-list').textContent = E.INTERESTS.join(' · ');
 setDelegates(genStudents(), true);
 </script>
 </body>
