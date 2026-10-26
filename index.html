@@ -600,7 +600,7 @@
           <div class="format-row"><div class="format-col"><div class="format-name">First Name · Last Name · Preferred First Name</div><div class="format-values">Rosters use the preferred first name when one is given</div></div></div>
           <div class="format-row"><div class="format-col"><div class="format-name">Delegation</div><div class="format-values">Used to spread each delegation across rooms</div></div></div>
           <div class="format-row"><div class="format-col"><div class="format-name">Grade</div><div class="format-values">9 · 10 · 11 · 12 (upperclassmen get first call on seats)</div></div></div>
-          <div class="format-row"><div class="format-col"><div class="format-name">Are you a first year delegate or returning?</div><div class="format-values">First year delegate · Returning<br>first-years are never placed in Advanced committees</div></div></div>
+          <div class="format-row"><div class="format-col"><div class="format-name">Are you a first year delegate or returning?</div><div class="format-values">First year delegate · Returning<br>first-years are kept out of Advanced committees, bar a strong-fit handful</div></div></div>
           <div class="format-row"><div class="format-col"><div class="format-name">What are your interests in Model UN?</div><div class="format-values" id="interest-list"></div></div></div>
           <div class="format-row"><div class="format-col"><div class="format-name">Please select ALL committee sizes you are interested in</div><div class="format-values">Small (20-40) · Medium (40-70) · Large (70+)<br>No preference on committee size</div></div></div>
           <div class="format-row"><div class="format-col"><div class="format-name">Seniority Pick <span style="color:var(--text-3);font-weight:400">· optional, add it in Airtable</span></div><div class="format-values">Committee name or acronym (e.g. ICJ, Security Council)<br>strongly favored when present</div></div></div>
@@ -630,7 +630,7 @@
       <div class="page-header anim d1">
         <div class="page-eyebrow">Step 2 · Committees</div>
         <h1 class="page-title">Set Up Your Committees</h1>
-        <p class="page-sub">Match this list to your conference. <b style="color:var(--text)">Advanced</b> committees never receive first-years; <b style="color:var(--text)">Beginner</b> committees are favored for them. Topics are matched against the interests delegates ticked on the form, and sizes follow the form's seat ranges. Your committee setup is remembered on this computer.</p>
+        <p class="page-sub">Match this list to your conference. <b style="color:var(--text)">Advanced</b> committees take only a handful of first-years (a couple per committee at most, and only on a much stronger fit); <b style="color:var(--text)">Beginner</b> committees are favored for them. Topics are matched against the interests delegates ticked on the form, and sizes follow the form's seat ranges. Your committee setup is remembered on this computer.</p>
       </div>
 
       <div class="cedit-bar anim d2" id="cedit-bar">
@@ -658,7 +658,7 @@
       <div class="assign-hero anim d1">
         <div class="assign-icon">⚡</div>
         <h2 class="assign-title">Run Committee Assignment</h2>
-        <p class="assign-desc">Matches every delegate to the interests and committee sizes they picked on the registration form, keeps first-years out of advanced committees, steers returning upperclassmen toward them, honors seniority picks, and spreads each delegation evenly.</p>
+        <p class="assign-desc">Matches every delegate to the interests and committee sizes they picked on the registration form, keeps all but a handful of first-years out of advanced committees, steers returning upperclassmen toward them, honors seniority picks, and spreads each delegation evenly.</p>
         <button class="run-btn" id="run-btn" onclick="runAssignmentUI()">
           <span id="btn-icon">▶</span>
           <span id="btn-text">Run Assignment</span>
@@ -1042,7 +1042,7 @@ function renderAssignTable() {
 }
 
 // Options for a "move/place into committee" dropdown. Shows fill, and marks
-// committees a first-year isn't allowed into.
+// advanced committees for a first-year.
 function committeeOptions(student, excludeId) {
   return COMMITTEES.filter(x => x.id !== excludeId).map(x => {
     const n = fillOf(x.id);

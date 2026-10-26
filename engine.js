@@ -11,36 +11,47 @@
   // The default line-up. Organizers edit their own on the Committees tab;
   // every function below takes the committee list as a parameter.
   // tier drives experience-based matching:
-  //   Advanced     → first-years are NEVER placed here (hard rule);
-  //                  returning delegates are nudged toward these.
+  //   Advanced     → first-years are steered away (see FIRST_YEAR_ADVANCED)
+  //                  and only a handful get in; returning delegates are
+  //                  nudged toward these.
   //   Beginner     → large, first-year-friendly bodies.
   //   Intermediate → everything else.
   // Topics use the registration form's interest list (INTERESTS below) so a
-  // delegate's ticked interests line up with committees word for word.
+  // delegate's ticked interests line up with committees word for word. The
+  // line-up and each committee's interests follow the 2027 committee page,
+  // https://www.gpyce.org/mun-committees (tiers and seat counts are ours).
   const COMMITTEES = [
     { id:1,  name:"African Summit",                  type:"Regional Summit", topics:["Health","Economic","Social Justice/Human Rights"],                 size:"Small",  cap:30,  tier:"Intermediate" },
-    { id:2,  name:"Economic & Finance",              type:"Topic-based",     topics:["Economic","Technology","Law"],                                     size:"Medium", cap:60,  tier:"Intermediate" },
-    { id:3,  name:"European Summit",                 type:"Regional Summit", topics:["Technology","Economic","Military/Conflict Resolution"],            size:"Small",  cap:30,  tier:"Intermediate" },
-    { id:4,  name:"Group of 20",                     type:"General",         topics:["Economic","Environment","Technology"],                             size:"Small",  cap:30,  tier:"Intermediate" },
-    { id:5,  name:"International Court of Justice",   type:"Court",           topics:["Law","Social Justice/Human Rights","History"],                     size:"Small",  cap:25,  tier:"Advanced" },
+    { id:2,  name:"Economic & Finance",              type:"Topic-based",     topics:["Economic","Military/Conflict Resolution","Environment"],           size:"Medium", cap:60,  tier:"Intermediate" },
+    { id:3,  name:"European Summit",                 type:"Regional Summit", topics:["Technology","Environment","Economic"],                             size:"Small",  cap:30,  tier:"Intermediate" },
+    { id:4,  name:"Group of 20",                     type:"General",         topics:["Economic","Health","Social Justice/Human Rights"],                 size:"Small",  cap:30,  tier:"Intermediate" },
+    { id:5,  name:"International Court of Justice",   type:"Court",           topics:["Law","Social Justice/Human Rights","History"],                    size:"Small",  cap:25,  tier:"Advanced" },
     { id:6,  name:"International Security & Crime",   type:"Topic-based",     topics:["Military/Conflict Resolution","Law","Technology"],                size:"Medium", cap:60,  tier:"Intermediate" },
-    { id:7,  name:"Nation Building",                 type:"Historical",      topics:["History","Economic","Social Justice/Human Rights"],                size:"Large",  cap:120, tier:"Beginner" },
+    { id:7,  name:"Nation Building",                 type:"Historical",      topics:["History","Military/Conflict Resolution","Economic"],               size:"Large",  cap:120, tier:"Beginner" },
     { id:8,  name:"Press / Media",                   type:"Press",           topics:["Social Media","Technology","Social Justice/Human Rights"],         size:"Small",  cap:25,  tier:"Advanced" },
     { id:9,  name:"Social, Humanitarian & Cultural", type:"Topic-based",     topics:["Social Justice/Human Rights","Health","Environment"],              size:"Medium", cap:60,  tier:"Intermediate" },
-    { id:10, name:"Asia-Pacific Summit",             type:"Regional Summit", topics:["Environment","Economic","Military/Conflict Resolution"],           size:"Small",  cap:30,  tier:"Intermediate" },
-    { id:11, name:"Environment & Technology",        type:"Topic-based",     topics:["Environment","Technology","Social Media"],                         size:"Medium", cap:60,  tier:"Intermediate" },
-    { id:12, name:"General Assembly",                type:"General",         topics:["Social Justice/Human Rights","Military/Conflict Resolution","Health"], size:"Large", cap:120, tier:"Beginner" },
-    { id:13, name:"Historical Security Council",     type:"Historical",      topics:["History","Military/Conflict Resolution","Law"],                    size:"Small",  cap:25,  tier:"Advanced" },
-    { id:14, name:"International Criminal Court",     type:"Court",           topics:["Law","Social Justice/Human Rights","History"],                     size:"Small",  cap:25,  tier:"Advanced" },
-    { id:15, name:"MENA Summit",                     type:"Regional Summit", topics:["Military/Conflict Resolution","Health","Social Justice/Human Rights"], size:"Small", cap:30, tier:"Intermediate" },
-    { id:16, name:"Pan-American Summit",             type:"Regional Summit", topics:["Law","Environment","Economic"],                                    size:"Small",  cap:30,  tier:"Intermediate" },
-    { id:17, name:"Security Council",                type:"Topic-based",     topics:["Military/Conflict Resolution","Technology","Law"],                size:"Small",  cap:25,  tier:"Advanced" },
-    { id:18, name:"World Health Organization",       type:"Topic-based",     topics:["Health","Technology","Social Justice/Human Rights"],              size:"Medium", cap:60,  tier:"Intermediate" }
+    { id:10, name:"Asia-Pacific Summit",             type:"Regional Summit", topics:["Economic","Military/Conflict Resolution","Technology"],            size:"Small",  cap:30,  tier:"Intermediate" },
+    { id:11, name:"Environment & Technology",        type:"Topic-based",     topics:["Environment","Technology","Health"],                               size:"Medium", cap:60,  tier:"Intermediate" },
+    { id:12, name:"General Assembly",                type:"General",         topics:["Environment","Social Media","Health"],                             size:"Large", cap:120, tier:"Beginner" },
+    { id:13, name:"Historical Security Council",     type:"Historical",      topics:["History","Military/Conflict Resolution","Social Justice/Human Rights"], size:"Small",  cap:25,  tier:"Advanced" },
+    { id:14, name:"International Criminal Court",     type:"Court",           topics:["Law","Social Justice/Human Rights","History"],                    size:"Small",  cap:25,  tier:"Advanced" },
+    { id:15, name:"MENA Summit",                     type:"Regional Summit", topics:["Military/Conflict Resolution","Economic","Law"],                   size:"Small", cap:30, tier:"Intermediate" },
+    { id:16, name:"Pan-American Summit",             type:"Regional Summit", topics:["Law","Health","Technology"],                                       size:"Small",  cap:30,  tier:"Intermediate" },
+    { id:17, name:"Security Council",                type:"Topic-based",     topics:["Military/Conflict Resolution","Economic","Environment"],           size:"Small",  cap:25,  tier:"Advanced" },
+    { id:18, name:"World Health Organization",       type:"Topic-based",     topics:["Health","Social Justice/Human Rights","Law"],                      size:"Medium", cap:60,  tier:"Intermediate" }
   ];
 
   const TYPE_OPTS = ["Regional Summit","Topic-based","Court","General","Historical","Press"];
   const SIZE_OPTS = ["Small","Medium","Large"];
   const TIER_OPTS = ["Beginner","Intermediate","Advanced"];
+
+  // First-years in Advanced committees: avoided, not banned. The penalty is
+  // about one topic hit (22), so only a first-year who matches an Advanced
+  // committee by more than a whole extra interest lands there; `share` caps how
+  // many seats of each Advanced committee first-years can take (at least 1).
+  // On the 855-delegate mock that is 2 of 358 first-years.
+  const FIRST_YEAR_ADVANCED = { penalty: 20, share: 0.1 };
+  const firstYearSeats = c => c.tier === 'Advanced' ? Math.max(1, Math.floor(c.cap * FIRST_YEAR_ADVANCED.share)) : c.cap;
 
   // ── The registration form (2027 GPY Model UN, Airtable) ──
   // Defaults mirror the form so its export imports with no renaming.
@@ -327,14 +338,16 @@
 
   // Hard constraints return -Infinity (delegate can never go there):
   //   • committee is full
-  //   • first-year + Advanced committee
+  //   • first-year + Advanced committee whose first-year seats are taken
   // Everything else is a soft score; highest score wins a seat.
   function scoreMatch(student, committee, ctx) {
-    const { fills, schoolCnts, schoolSizes, total } = ctx;
+    const { fills, firstFills, schoolCnts, schoolSizes, total } = ctx;
     if (fills[committee.id] >= committee.cap) return -Infinity;                 // no seats
-    if (student.year === 'first' && committee.tier === 'Advanced') return -Infinity; // experience hard rule
+    const firstIntoAdvanced = student.year === 'first' && committee.tier === 'Advanced';
+    if (firstIntoAdvanced && firstFills && firstFills[committee.id] >= firstYearSeats(committee)) return -Infinity;
 
     let s = 0;
+    if (firstIntoAdvanced) s -= FIRST_YEAR_ADVANCED.penalty;                    // experience fit: avoided, not banned
 
     // Seniority pick — strong boost (dominates normal prefs, still loses to a full/illegal committee)
     if (student.seniorityPick && committee.id === student.seniorityPick) s += 120;
@@ -377,6 +390,7 @@
     });
 
     const fills      = Object.fromEntries(committees.map(c => [c.id, 0]));
+    const firstFills = Object.fromEntries(committees.map(c => [c.id, 0]));
     const schoolCnts = Object.fromEntries(committees.map(c => [c.id, {}]));
     const schoolSizes = {};
     students.forEach(s => { schoolSizes[s.school] = (schoolSizes[s.school] || 0) + 1; });
@@ -385,6 +399,7 @@
     const seat = (student, c) => {
       student.assigned = c.id;
       fills[c.id]++;
+      if (student.year === 'first') firstFills[c.id]++;
       schoolCnts[c.id][student.school] = (schoolCnts[c.id][student.school] || 0) + 1;
     };
     students.filter(s => s.locked).forEach(s => seat(s, byId[s.assigned]));
@@ -392,12 +407,34 @@
     const typeCount = {};
     committees.forEach(c => { typeCount[c.type] = (typeCount[c.type] || 0) + 1; });
 
-    // Placement order: seniority picks first (claim their seat), then delegates whose
-    // preferred committee type is rarer (fewer seats to fight over), then older
-    // grades first so seniors get first call on the seats they want.
+    // Returning upperclassmen pick first and would take every Advanced seat before
+    // a first-year is reached. So the few first-years whose fit for an Advanced
+    // committee beats every other committee even after the penalty — the
+    // strongest margins, up to that committee's first-year seats — go early.
+    const ctx0 = { fills, schoolCnts, schoolSizes, total };
+    const standouts = new Set();
+    const firstRoom = Object.fromEntries(committees.map(c => [c.id, firstYearSeats(c) - firstFills[c.id]]));
+    students.filter(s => !s.locked && s.year === 'first').map(s => {
+      let adv = null, advScore = -Infinity, other = -Infinity;
+      for (const c of committees) {
+        const sc = scoreMatch(s, c, ctx0);
+        if (c.tier !== 'Advanced') other = Math.max(other, sc);
+        else if (sc > advScore) { advScore = sc; adv = c; }
+      }
+      return { s, adv, margin: advScore - other };
+    }).filter(x => x.adv && x.margin > 0).sort((a, b) => b.margin - a.margin).forEach(x => {
+      if (firstRoom[x.adv.id] > 0) { firstRoom[x.adv.id]--; standouts.add(x.s); }
+    });
+
+    // Placement order: seniority picks first (claim their seat), then those standout
+    // first-years, then delegates whose preferred committee type is rarer (fewer
+    // seats to fight over), then older grades first so seniors get first call on
+    // the seats they want.
     const sorted = students.filter(s => !s.locked).sort((a, b) => {
       const ap = a.seniorityPick ? 0 : 1, bp = b.seniorityPick ? 0 : 1;
       if (ap !== bp) return ap - bp;
+      const ao = standouts.has(a) ? 0 : 1, bo = standouts.has(b) ? 0 : 1;
+      if (ao !== bo) return ao - bo;
       const at = a.prefType ? (typeCount[a.prefType] || 0) : 0, bt = b.prefType ? (typeCount[b.prefType] || 0) : 0;
       if (at !== bt) return at - bt;
       return (b.grade || 0) - (a.grade || 0);
@@ -406,7 +443,7 @@
     for (const student of sorted) {
       let best = -Infinity, bestC = null;
       for (const c of committees) {
-        const sc = scoreMatch(student, c, { fills, schoolCnts, schoolSizes, total });
+        const sc = scoreMatch(student, c, { fills, firstFills, schoolCnts, schoolSizes, total });
         if (sc > best) { best = sc; bestC = c; }
       }
       if (bestC) seat(student, bestC);
@@ -429,8 +466,9 @@
     else if (student.seniorityPick) {
       const p = committees.find(x => x.id === student.seniorityPick);
       if (p) why.push(student.year === 'first' && p.tier === 'Advanced'
-        ? `pick (${p.name}) is closed to first-years` : `pick (${p.name}) was full`);
+        ? `pick (${p.name}) had no first-year seats left` : `pick (${p.name}) was full`);
     }
+    if (student.year === 'first' && c.tier === 'Advanced') why.push('first-year with a strong fit for an advanced committee');
     if (student.prefType && student.prefType === c.type) why.push('preferred type');
     const hits = topicHits(student, c);
     if (hits.length) why.push('interests: ' + hits.join(', '));
@@ -485,13 +523,15 @@
     if (students.length > seats)
       out.push({ level:'warn', msg:`${students.length} delegates but only ${seats} seats — ${students.length - seats} will be flagged. Raise committee capacities on the Committees tab to seat everyone.` });
     const firsts = students.filter(s => s.year === 'first').length;
-    const openSeats = committees.filter(c => c.tier !== 'Advanced').reduce((a, c) => a + c.cap, 0);
+    const openSeats = committees.reduce((a, c) => a + firstYearSeats(c), 0);
     if (firsts > openSeats)
-      out.push({ level:'warn', msg:`${firsts} first-years but only ${openSeats} seats outside advanced committees — ${firsts - openSeats} first-years can't be seated.` });
+      out.push({ level:'warn', msg:`${firsts} first-years but only ${openSeats} seats open to them (advanced committees take only a few first-years each) — ${firsts - openSeats} first-years can't be seated.` });
     const byId = Object.fromEntries(committees.map(c => [c.id, c]));
-    const badPicks = students.filter(s => s.year === 'first' && byId[s.seniorityPick] && byId[s.seniorityPick].tier === 'Advanced').length;
-    if (badPicks)
-      out.push({ level:'info', msg:`${badPicks} first-year${badPicks !== 1 ? 's have' : ' has'} a seniority pick for an advanced committee. The experience rule wins, so ${badPicks !== 1 ? 'those picks' : 'that pick'} can't be honored.` });
+    committees.filter(c => c.tier === 'Advanced').forEach(c => {
+      const n = students.filter(s => s.year === 'first' && s.seniorityPick === c.id).length;
+      if (n > firstYearSeats(c))
+        out.push({ level:'info', msg:`${n} first-years have a seniority pick for ${c.name}, an advanced committee that takes ${firstYearSeats(c)} first-year${firstYearSeats(c) !== 1 ? 's' : ''} — ${n - firstYearSeats(c)} won't get their pick.` });
+    });
     const pickCnt = {};
     students.forEach(s => { if (byId[s.seniorityPick]) pickCnt[s.seniorityPick] = (pickCnt[s.seniorityPick] || 0) + 1; });
     Object.entries(pickCnt).forEach(([id, n]) => {
@@ -535,7 +575,7 @@
 
   // ── Export ──────────────────────────────────────────────
   const api = {
-    COMMITTEES, TYPE_OPTS, SIZE_OPTS, TIER_OPTS, COLUMN_CANDIDATES,
+    COMMITTEES, TYPE_OPTS, SIZE_OPTS, TIER_OPTS, COLUMN_CANDIDATES, FIRST_YEAR_ADVANCED, firstYearSeats,
     DEFAULT_CONFERENCE, INTERESTS, SIZE_RANGES, GRADES, sizeLabel,
     matchType, matchSizes, matchGrade, normalizeTopic, sizesOf, matchCommittee, acronym,
     parseCSV, parseCSVRow, csvCell, toCSV, findCol,

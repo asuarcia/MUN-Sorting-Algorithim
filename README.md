@@ -24,7 +24,7 @@ Nothing to install: download it and double-click.
 ## How to use it
 
 1. **Import.** In Airtable, open the registration table and **Download CSV** (or export to Excel), then drop the file in. It's set up for the 2027 GPY Model UN registration form, so no columns need renaming. Other forms work too.
-2. **Committees.** Enter your conference's committees: name, seats, topics, and whether each is Beginner, Intermediate or Advanced. The app remembers them for next time.
+2. **Committees.** The default line-up is the 18 committees on the [GPY Model UN committees page](https://www.gpyce.org/mun-committees), each tagged with the form interests its 2027 topics cover. Adjust names, seats, topics and whether each is Beginner, Intermediate or Advanced to fit your conference. The app remembers them for next time.
 3. **Run.** Click **Run Assignment**. Every delegate gets a seat, and the app warns you first if you don't have enough seats.
 4. **Review & export.** Click any committee to see who's in it and **Move** people by hand. Hand placements stick if you re-run. Then **Export rosters (Excel)** to get one file with:
    - a summary,
@@ -60,8 +60,8 @@ Everything runs on your computer. Nothing is uploaded, not even in the browser v
 
 ## How it decides
 
-- **First-years never go into Advanced committees.** This is a hard rule. Returning delegates are steered toward them.
-- **Seniority picks** get a very strong boost, as long as the committee has room.
+- **First-years are kept out of Advanced committees, with a few exceptions.** It isn't a hard rule. A first-year only lands in an Advanced committee when it fits their interests and sizes much better than any other committee (by more than a whole extra interest), and each Advanced committee takes at most 10% of its seats in first-years (at least 1, so 2 of 25). In practice that's a handful per conference: 2 of 358 first-years in the 855-delegate test data. Their placement reason says so, so you can move them out by hand if you want. Returning delegates are steered toward Advanced committees.
+- **Seniority picks** get a very strong boost, as long as the committee has room. A first-year's pick for an Advanced committee also counts against that committee's first-year seats.
 - **Interests** are matched against each committee's topics. Committees use the form's nine interests by default, and older words like "Healthcare" or "Security" still count.
 - **Sizes:** committees in a size the delegate ticked are favored, and ones they left unticked are avoided. "No preference" (or ticking all three) is neutral.
 - **Grade:** returning 11th and 12th graders get an extra nudge toward Advanced committees and pick before younger delegates.
@@ -87,7 +87,7 @@ python make_mock_data.py   # regenerate fake test spreadsheets (includes fake PI
 | File | Purpose |
 |---|---|
 | `index.html` | The whole UI |
-| `engine.js` | Parsing + assignment rules. Shared by the app **and** the tests |
+| `engine.js` | Parsing + assignment rules. Shared by the app **and** the tests. `FIRST_YEAR_ADVANCED` sets the first-year penalty and seat share |
 | `main.js` | Electron desktop wrapper |
 | `vendor/` | Excel reader/writer (SheetJS) and fonts, bundled so it works offline |
 | `test/verify.js` | Rule and confidentiality checks |

@@ -4,7 +4,7 @@
  *  Proves, without launching the GUI:
  *    1. Confidentiality — only needed columns are read; PII is dropped
  *       and never present on any delegate object.
- *    2. Hard rule — no first-year lands in an Advanced committee.
+ *    2. Experience rule — first-years avoid Advanced committees; a capped handful get in.
  *    3. Seniority picks — honored (strong boost) when capacity allows.
  *    4. Placement — delegates get seated.
  *  Generate the input first:  python make_mock_data.py
@@ -88,13 +88,29 @@ const byId = Object.fromEntries(E.COMMITTEES.map(c => [c.id, c]));
 const placed = students.filter(s => s.assigned).length;
 const flagged = students.filter(s => s.flagged).length;
 
-// ── 2. Hard experience rule ─────────────────────────────
-console.log('\nExperience rule (HARD: first-years never in Advanced)');
-const violations = students.filter(s => s.year === 'first' && s.assigned && byId[s.assigned].tier === 'Advanced');
-check('no first-year placed in an Advanced committee', violations.length === 0,
-  violations.length ? violations.map(s => `${s.name}→${byId[s.assigned].name}`).join('; ') : 'clean');
-const advNames = E.COMMITTEES.filter(c => c.tier === 'Advanced').map(c => c.name).join(', ');
-console.log(`        (Advanced committees: ${advNames})`);
+// ── 2. Experience rule (soft) ───────────────────────────
+console.log('\nExperience rule (first-years avoid Advanced; only a handful get in)');
+const advanced = E.COMMITTEES.filter(c => c.tier === 'Advanced');
+const firstsInAdv = students.filter(s => s.year === 'first' && s.assigned && byId[s.assigned].tier === 'Advanced');
+check('first-years in Advanced committees are rare', firstsInAdv.length <= firstYears * 0.05,
+  `${firstsInAdv.length} of ${firstYears} first-years: ` + (firstsInAdv.map(s => `${s.name}→${byId[s.assigned].name}`).join('; ') || 'none'));
+check('no Advanced committee goes over its first-year seats',
+  advanced.every(c => firstsInAdv.filter(s => s.assigned === c.id).length <= E.firstYearSeats(c)),
+  advanced.map(c => `${c.name} ${E.firstYearSeats(c)}`).join(', '));
+// Two committees, same topics: the first-year takes the non-Advanced one on an
+// even fit, and the Advanced one only when it fits by more than the penalty.
+const pair = [
+  { id: 1, name: 'Adv', type: 'Court', topics: ['Law', 'History', 'Health'], size: 'Small', cap: 25, tier: 'Advanced' },
+  { id: 2, name: 'Mid', type: 'Court', topics: ['Law', 'History', 'Health'], size: 'Small', cap: 25, tier: 'Intermediate' }
+];
+const fy = topics => ({ id: 1, name: 'F Y', school: 'S', grade: 9, year: 'first', prefTopics: topics, prefSizes: [] });
+const even = [fy(['Law'])]; E.runAssignment(even, pair);
+check('first-year takes the non-Advanced committee on an even fit', even[0].assigned === 2);
+const strong = [fy(['Law', 'History', 'Health'])];
+const weaker = [pair[0], { ...pair[1], topics: ['Law', 'Economic', 'Technology'] }];
+E.runAssignment(strong, weaker);
+check('first-year with a much stronger fit can get into an Advanced committee', strong[0].assigned === 1,
+  E.explainPlacement(strong[0], weaker));
 
 // ── 3. Seniority picks ──────────────────────────────────
 console.log('\nSeniority picks (strong boost)');
