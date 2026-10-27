@@ -1,6 +1,6 @@
 # MUN Committee Sorter
 
-Sorts Model UN delegates into committees from your registration spreadsheet in seconds.
+Sorts Model UN delegates into committees from your registration spreadsheet in seconds, then gives each one a country.
 
 ## ⬇ Download
 
@@ -24,13 +24,18 @@ Sorts Model UN delegates into committees from your registration spreadsheet in s
 The following are directions that are also within the program itself once downloaded/opened
 
 1. **Import.** In Airtable, open the registration table and **Download CSV** (or export to Excel), then drop the file in. It's set up for the 2027 GPY Model UN registration form, so no columns need renaming. Other forms work too.
+<<<<<<< HEAD
 2. **Committees.** The default line-up is the 18 committees on the [GPY Model UN committees page](https://www.gpyce.org/mun-committees), each tagged with the form interests its 2027 topics cover. Adjust names, seats, topics, and whether each is Beginner, Intermediate, or Advanced to fit your conference. The app remembers them for next time.
 3. **Run.** Click **Run Assignment**. Every delegate gets a seat, and the app warns you first if you don't have enough seats.
+=======
+2. **Committees.** The default line-up is the 18 committees on the [GPY Model UN committees page](https://www.gpyce.org/mun-committees), each tagged with the form interests its 2027 topics cover. Adjust names, seats, topics, countries and whether each is Beginner, Intermediate or Advanced to fit your conference. The app remembers them for next time.
+3. **Run.** Click **Run Assignment**. Every delegate gets a seat and a country, and the app warns you first if you don't have enough seats.
+>>>>>>> 72b8842 (Assign every delegate a country)
 4. **Review & export.** Click any committee to see who's in it and **Move** people by hand. Hand placements stick if you re-run. Then **Export rosters (Excel)** to get one file with:
    - a summary,
    - every delegate and *why* they got their committee,
    - a list per school for faculty advisors,
-   - a roster per committee for chairs.
+   - a roster per committee for chairs, in country order.
 
 **Save session** keeps your work in a file so you can close the app and pick up later, or hand it to a co-organizer.
 
@@ -68,7 +73,30 @@ Everything runs on your computer. Nothing is uploaded, not even in the browser v
 - **Delegations are spread out** so no single school dominates a room.
 - If every committee a delegate is allowed into is full, they're **flagged** so you can place them by hand.
 
+<<<<<<< HEAD
 After each run, you see how many delegates got one of their interests and a size they picked, how many seniority picks were honored, and the largest share of any room held by one school. Before a run, the app warns about committees whose seat count doesn't fit the form's size ranges, and interests no committee covers.
+=======
+### Countries
+
+Once everyone has a committee, each delegate gets a country. Returning delegates tend to get the more significant ones, especially in big committees, but it's a strong tendency, not a rule.
+
+- **Each committee has a ranked position list.** It starts with the committee's own countries, most significant first, then fills the remaining seats from a pool (a region or the world), also most significant first. A region that runs out (MENA has 23 countries for 30 seats) continues with the rest of the world as observers. Defaults:
+  - **Security Council:** the P5, then the ten elected members sitting in 2026. *Update the elected ten for your conference year.*
+  - **G20:** its 19 countries plus the EU and the African Union. Extra seats go to the next-largest countries as guests.
+  - **Regional summits:** that region's countries.
+  - **Topic committees and the General Assembly:** the whole world.
+  - **Historical Security Council:** a 1980s council (Soviet Union, West/East Germany, …) plus the parties to the 2027 crises.
+  - **Nation Building:** the 2027 topic's eight nations, with about 15 delegates on each nation.
+  - **Courts and Press:** no countries.
+- **How significant a country is** comes from a built-in table of all 193 UN members (plus Palestine as an observer) in four tiers: major powers (P5, Germany, Japan, India), big players (Brazil, Canada, Saudi Arabia, Turkey, …), regional powers, and everyone else.
+- **Delegates are ranked by experience within their own room:** returning first, then grade. Ranking within the room, rather than against a fixed bar, means it adapts to whoever is there. A room with only 3 returners gives them top countries and then hands the next most significant ones to the oldest first-years. A room with no returners goes by grade.
+- **Not strict:** a small, fixed amount of shuffle is added to each delegate's rank (the same every run, so re-running doesn't change countries). Big rooms get the least shuffle, because a major power in a 120-seat General Assembly has to carry a lot of delegates. In the test data, a first-year ends up with a more significant country than a returning delegate in the same room in about 6% of pairs in Large committees, 9% in Medium and 15% in Small (0% would be strict, 50% random). The most significant fifth of a room almost always goes to returners when there are enough of them; the mixing happens below that.
+- **Moving someone by hand** re-deals the countries in the two rooms involved, so check rosters after moves.
+
+You can change any committee's countries on the Committees tab: list its own countries, most significant first, and pick what to fill the remaining seats from.
+
+After each run you see how many delegates got one of their interests and a size they picked, how many seniority picks were honored, the share of each room's most significant countries held by returning delegates, and the largest share of any room held by one school. Before a run, the app warns about committees whose seat count doesn't fit the form's size ranges, and interests no committee covers.
+>>>>>>> 72b8842 (Assign every delegate a country)
 
 ---
 
@@ -87,7 +115,7 @@ python make_mock_data.py   # regenerate fake test spreadsheets (includes fake PI
 | File | Purpose |
 |---|---|
 | `index.html` | The whole UI |
-| `engine.js` | Parsing + assignment rules. Shared by the app **and** the tests. `FIRST_YEAR_ADVANCED` sets the first-year penalty and seat share |
+| `engine.js` | Parsing + assignment rules. Shared by the app **and** the tests. `FIRST_YEAR_ADVANCED` sets the first-year penalty and seat share; `COUNTRY_TIERS`, `DEFAULT_POSITIONS` and `COUNTRY_JITTER` drive countries |
 | `main.js` | Electron desktop wrapper |
 | `vendor/` | Excel reader/writer (SheetJS) and fonts, bundled so it works offline |
 | `test/verify.js` | Rule and confidentiality checks |

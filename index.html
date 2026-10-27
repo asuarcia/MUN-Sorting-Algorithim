@@ -344,6 +344,7 @@
     .d-row-top   { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
     .d-name      { font-size: 13.5px; font-weight: 600; color: var(--text); }
     .d-school    { font-size: 11.5px; color: var(--text-2); margin-top: 2px; }
+    .d-country   { font-size: 12px; color: var(--gold-lt); margin-top: 3px; font-weight: 500; }
     .d-topics    { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
 
     .d-row-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; flex-direction: column; align-items: flex-end; }
@@ -646,7 +647,7 @@
       <div id="cedit-errors"></div>
       <div class="tbl-wrap anim d3">
         <table class="cedit">
-          <thead><tr><th style="width:26%">Name</th><th>Type</th><th>Level</th><th>Size</th><th>Seats</th><th style="width:26%">Topics (separate with ;)</th><th></th></tr></thead>
+          <thead><tr><th style="width:26%">Name</th><th>Type</th><th>Level</th><th>Size</th><th>Seats</th><th style="width:20%">Topics (separate with ;)</th><th style="width:22%">Countries (most significant first, ;)</th><th>Then fill from</th><th></th></tr></thead>
           <tbody id="cedit-body"></tbody>
         </table>
       </div>
@@ -658,7 +659,7 @@
       <div class="assign-hero anim d1">
         <div class="assign-icon">⚡</div>
         <h2 class="assign-title">Run Committee Assignment</h2>
-        <p class="assign-desc">Matches every delegate to the interests and committee sizes they picked on the registration form, keeps all but a handful of first-years out of advanced committees, steers returning upperclassmen toward them, honors seniority picks, and spreads each delegation evenly.</p>
+        <p class="assign-desc">Matches every delegate to the interests and committee sizes they picked on the registration form, keeps all but a handful of first-years out of advanced committees, steers returning upperclassmen toward them, honors seniority picks, and spreads each delegation evenly. Then each room's most significant countries go mostly to its most experienced delegates.</p>
         <button class="run-btn" id="run-btn" onclick="runAssignmentUI()">
           <span id="btn-icon">▶</span>
           <span id="btn-text">Run Assignment</span>
@@ -779,8 +780,10 @@ const settings   = loadSettings();
 // Defaults match the 2027 GPY registration form. A saved name or committee list
 // wins only if the organizer actually changed it (the old generic default doesn't count).
 let CONFERENCE   = (settings.conference && settings.conference !== 'Model UN Conference') ? settings.conference : E.DEFAULT_CONFERENCE;
-let COMMITTEES   = (settings.committeesTouched && Array.isArray(settings.committees) && !E.validateCommittees(settings.committees).length)
-  ? settings.committees : clone(E.COMMITTEES);
+// Committees saved before countries existed get the default countries for their name.
+const withPositions = list => list.map(c => ({ ...c, ...E.positionsOf(c) }));
+let COMMITTEES   = withPositions((settings.committeesTouched && Array.isArray(settings.committees) && !E.validateCommittees(settings.committees).length)
+  ? settings.committees : clone(E.COMMITTEES));
 let STUDENTS     = [];
 let IS_SAMPLE    = true;
 let result       = null;
@@ -936,6 +939,7 @@ function updateStats() {
 }
 
 function refreshAll() {
+  if (result) E.assignCountries(STUDENTS, COMMITTEES);   // follows hand moves too
   renderHeader();
   updateStats();
   renderGrid();
@@ -970,7 +974,8 @@ async function runAssignmentUI() {
     [20,'Scoring committee compatibility…'],
     [45,'Seating seniority picks…'],
     [70,'Spreading schools across rooms…'],
-    [90,'Flagging anyone without a seat…'],
+    [82,'Flagging anyone without a seat…'],
+    [94,'Assigning countries…'],
     [100,'Complete!']
   ];
   const fill = document.getElementById('prog-fill');
@@ -1009,6 +1014,7 @@ function renderResults() {
   const sub = [];
   if (m.typeMatch != null) sub.push(`${m.typeMatch}% got their preferred type`);
   if (m.picksTotal) sub.push(`${m.picksHonored} of ${m.picksTotal} seniority picks honored`);
+  if (m.countryFit) sub.push(`returning delegates are ${m.countryFit.returningPct}% of delegates with a country and hold ${m.countryFit.topReturningPct}% of each room’s most significant fifth`);
   if (m.maxSchoolShare) sub.push(`largest single-school share of a room: ${m.maxSchoolShare.pct}% (${esc(m.maxSchoolShare.school)} in ${esc(m.maxSchoolShare.committee)}, ${m.maxSchoolShare.n} of ${m.maxSchoolShare.of})`);
   const subEl = document.getElementById('res-sub');
   subEl.innerHTML = sub.join(' · ');
@@ -1148,7 +1154,7 @@ function renderDelegates() {
     const c = cById(s.assigned);
     let cell;
     if (s.flagged)  cell = `<span class="pill pill-flag">⚑ Needs a seat</span>`;
-    else if (c)     cell = `<span style="font-size:12.5px;color:var(--text)">${esc(c.name)}</span>${s.locked ? ' <span class="pill pill-hand">Hand-placed</span>' : ''}<div class="reason">${esc(E.explainPlacement(s, COMMITTEES))}</div>`;
+    else if (c)     cell = `<span style="font-size:12.5px;color:var(--text)">${esc(c.name)}</span>${s.country ? `<div class="d-country">${esc(s.country)}</div>` : ''}${s.locked ? ' <span class="pill pill-hand">Hand-placed</span>' : ''}<div class="reason">${esc(E.explainPlacement(s, COMMITTEES))}</div>`;
     else            cell = `<span class="pill pill-pending">Pending</span>`;
     const pickC = cById(s.seniorityPick);
     return `<tr>
@@ -1222,7 +1228,7 @@ function renderDrawerContent() {
       ${cnt ? `<button class="action-btn" style="margin-top:14px;padding:8px 16px;font-size:13px" onclick="exportCommitteeRoster(${c.id})">↓ Roster for the chair (CSV)</button>` : ''}
     </div>
     <div class="drawer-search">
-      <input class="srch" type="text" id="drawer-srch" placeholder="Search by name or school…" oninput="filterDrawerList()" value="${esc(prevQ)}" style="width:100%">
+      <input class="srch" type="text" id="drawer-srch" placeholder="Search by name, school or country…" oninput="filterDrawerList()" value="${esc(prevQ)}" style="width:100%">
     </div>`;
 
   html += '<div class="drawer-body">';
@@ -1237,6 +1243,7 @@ function renderDrawerContent() {
         <div class="d-row-top">
           <div>
             <div class="d-name">${esc(s.name)}</div>
+            ${s.country ? `<div class="d-country">${esc(s.country)}</div>` : ''}
             <div class="d-school">${esc(s.school)}</div>
             <div class="reason">${esc(E.explainPlacement(s, COMMITTEES))}</div>
           </div>
@@ -1294,10 +1301,13 @@ function renderCommitteeEditor() {
       <td><select onchange="editC(${i},'size',this.value)">${SIZE_OPTS.map(o => `<option value="${o}"${o === c.size ? ' selected' : ''}>${E.sizeLabel(o)}</option>`).join('')}</select></td>
       <td><input class="num" type="number" min="1" step="1" value="${c.cap}" oninput="editC(${i},'cap',this.value)"></td>
       <td><input value="${esc(c.topics.join('; '))}" oninput="editC(${i},'topics',this.value)" placeholder="e.g. Law; History"></td>
+      <td><input value="${esc((c.countries || []).join('; '))}" oninput="editC(${i},'countries',this.value)" placeholder="${c.pool ? 'none, just the pool' : 'none: no countries'}"></td>
+      <td><select onchange="editC(${i},'pool',this.value)">${E.POOL_OPTS.map(o => `<option value="${esc(o)}"${o === (c.pool || '') ? ' selected' : ''}>${o ? esc(o) : 'Nothing else'}</option>`).join('')}</select></td>
       <td><button class="del" title="Remove committee" onclick="removeCommittee(${i})">✕</button></td>
     </tr>`).join('');
   document.getElementById('cedit-hint').innerHTML =
-    `Interests on the form: ${E.INTERESTS.map(t => `<span class="topic-chip">${esc(t)}</span>`).join(' ')}. Other words still work: “Healthcare” counts as Health, “Security” as Military/Conflict Resolution.`;
+    `Interests on the form: ${E.INTERESTS.map(t => `<span class="topic-chip">${esc(t)}</span>`).join(' ')}. Other words still work: “Healthcare” counts as Health, “Security” as Military/Conflict Resolution.<br>
+    <b>Countries:</b> list a committee’s own countries most significant first, then pick where extra seats are filled from, most significant first. A region that runs out continues with the rest of the world. Leave both empty (Courts, Press) for no countries. A list with “Nothing else” and more seats than countries puts several delegates on each country.`;
   updateCommitteeSummary();
 }
 
@@ -1305,6 +1315,7 @@ function editC(i, key, val) {
   const c = committeeDraft[i];
   if (key === 'cap') c.cap = Number(val);
   else if (key === 'topics') c.topics = val.split(';').map(t => t.trim()).filter(Boolean);
+  else if (key === 'countries') c.countries = val.split(';').map(t => t.trim()).filter(Boolean);
   else c[key] = val;
   updateCommitteeSummary();
 }
@@ -1321,7 +1332,7 @@ function updateCommitteeSummary() {
 
 function addCommittee() {
   const id = Math.max(0, ...committeeDraft.map(c => c.id), ...COMMITTEES.map(c => c.id)) + 1;
-  committeeDraft.push({ id, name:'', type:'Topic-based', topics:[], size:'Medium', cap:30, tier:'Intermediate' });
+  committeeDraft.push({ id, name:'', type:'Topic-based', topics:[], size:'Medium', cap:30, tier:'Intermediate', countries:[], pool:'World' });
   renderCommitteeEditor();
   const inputs = document.querySelectorAll('#cedit-body tr:last-child input');
   if (inputs[0]) inputs[0].focus();
@@ -1383,7 +1394,8 @@ function importCommittees(e) {
     const list = Array.isArray(data) ? data : data.committees;
     const errs = E.validateCommittees(list);
     if (errs.length) throw new Error(errs.slice(0, 3).join('; '));
-    committeeDraft = list.map((c, i) => ({ id: Number.isInteger(c.id) ? c.id : i + 1, name: c.name, type: c.type, topics: c.topics, size: c.size, cap: c.cap, tier: c.tier }));
+    committeeDraft = withPositions(list.map((c, i) => ({ id: Number.isInteger(c.id) ? c.id : i + 1, name: c.name, type: c.type, topics: c.topics, size: c.size, cap: c.cap, tier: c.tier,
+      ...(Array.isArray(c.countries) ? { countries: c.countries, pool: c.pool || '' } : {}) })));
     renderCommitteeEditor();
     showToast(`${list.length} committees loaded. Press Save changes to keep them.`);
   }).catch(err => showToast('Could not read that setup file: ' + err.message));
@@ -1553,6 +1565,7 @@ function delegateRow(s) {
     'ID': s.id, 'Name': s.name, 'Delegation': s.school, 'Grade': s.grade ?? '',
     'Year': s.year === 'first' ? 'First-year' : 'Returning',
     'Committee': c ? c.name : '',
+    'Country': s.country || '',
     'Status': s.flagged ? 'Flagged: needs a seat' : s.locked ? 'Placed by hand' : c ? 'Assigned' : 'Not assigned',
     'Why': E.explainPlacement(s, COMMITTEES),
     'Interests': s.prefTopics.join('; '), 'Sizes': sizesText(s),
@@ -1567,12 +1580,15 @@ function exportCSV() {
   download(`${slug(CONFERENCE)}-assignments.csv`, '﻿' + E.toCSV([header, ...rows.map(r => header.map(h => r[h]))]), 'text/csv');
 }
 
+// Chairs call the roll by country, so committee rosters are in country order.
+const byCountry = (a, b) => (a.country || '').localeCompare(b.country || '') || a.name.localeCompare(b.name);
+
 function exportCommitteeRoster(id) {
   const c = cById(id);
   const here = STUDENTS.filter(s => s.assigned === id).sort((a, b) => a.school.localeCompare(b.school) || a.name.localeCompare(b.name));
   download(`${slug(c.name)}-roster.csv`, '﻿' + E.toCSV([
-    ['Name','Delegation','Grade','Year'],
-    ...here.map(s => [s.name, s.school, s.grade ?? '', s.year === 'first' ? 'First-year' : 'Returning'])
+    ['Country','Name','Delegation','Grade','Year'],
+    ...here.sort(byCountry).map(s => [s.country || '', s.name, s.school, s.grade ?? '', s.year === 'first' ? 'First-year' : 'Returning'])
   ]), 'text/csv');
 }
 
@@ -1600,22 +1616,23 @@ function exportWorkbook() {
     const here = STUDENTS.filter(s => s.assigned === c.id);
     return { 'Committee': c.name, 'Type': c.type, 'Level': c.tier, 'Size': c.size, 'Seats': c.cap,
       'Assigned': here.length, 'First-years': here.filter(s => s.year === 'first').length,
-      'Schools': new Set(here.map(s => s.school)).size, 'Topics': c.topics.join('; ') };
+      'Schools': new Set(here.map(s => s.school)).size, 'Topics': c.topics.join('; '),
+      'Countries': [...(c.countries || []), ...(c.pool ? [`then ${c.pool}`] : [])].join('; ') };
   }).concat([{}, { 'Committee': [`${m.placed} placed`, `${m.flagged} flagged`, `${m.topicMatch}% got one of their interests`,
     m.sizeMatch != null && `${m.sizeMatch}% got a size they picked`, m.typeMatch != null && `${m.typeMatch}% got their preferred type`].filter(Boolean).join(' · ') }]),
   [34, 16, 13, 9, 7, 9, 11, 9, 40]);
 
   const all = [...STUDENTS].sort(bySchoolName).map(delegateRow);
-  add('All Delegates', all, [6, 24, 26, 7, 11, 32, 18, 44, 40, 22, 28]);
+  add('All Delegates', all, [6, 24, 26, 7, 11, 32, 24, 18, 44, 40, 22, 28]);
   add('By School', [...STUDENTS].sort(bySchoolName).map(s => ({
     'Delegation': s.school, 'Name': s.name, 'Grade': s.grade ?? '', 'Year': s.year === 'first' ? 'First-year' : 'Returning',
-    'Committee': cById(s.assigned)?.name || (s.flagged ? 'NEEDS A SEAT' : '')
-  })), [28, 24, 7, 11, 34]);
-  COMMITTEES.forEach(c => add(c.name, STUDENTS.filter(s => s.assigned === c.id).sort(bySchoolName).map((s, i) => ({
-    '#': i + 1, 'Name': s.name, 'Delegation': s.school, 'Grade': s.grade ?? '', 'Year': s.year === 'first' ? 'First-year' : 'Returning'
-  })), [5, 26, 28, 7, 11]));
+    'Committee': cById(s.assigned)?.name || (s.flagged ? 'NEEDS A SEAT' : ''), 'Country': s.country || ''
+  })), [28, 24, 7, 11, 34, 24]);
+  COMMITTEES.forEach(c => add(c.name, STUDENTS.filter(s => s.assigned === c.id).sort(byCountry).map((s, i) => ({
+    '#': i + 1, 'Country': s.country || '', 'Name': s.name, 'Delegation': s.school, 'Grade': s.grade ?? '', 'Year': s.year === 'first' ? 'First-year' : 'Returning'
+  })), [5, 24, 26, 28, 7, 11]));
   const flagged = STUDENTS.filter(s => s.flagged);
-  if (flagged.length) add('Flagged', flagged.map(delegateRow), [6, 24, 26, 7, 11, 32, 18, 44, 40, 22, 28]);
+  if (flagged.length) add('Flagged', flagged.map(delegateRow), [6, 24, 26, 7, 11, 32, 24, 18, 44, 40, 22, 28]);
 
   const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   download(`${slug(CONFERENCE)}-rosters.xlsx`, new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
@@ -1642,7 +1659,7 @@ function loadSessionFile(e) {
     if (d.app !== 'mun-sorter' || d.kind !== 'session') throw new Error('not a session file from this app');
     const errs = E.validateCommittees(d.committees);
     if (errs.length) throw new Error(errs[0]);
-    const KEYS = ['id','name','school','grade','year','prefType','prefTopics','prefSizes','seniorityPick','assigned','flagged','locked'];
+    const KEYS = ['id','name','school','grade','year','prefType','prefTopics','prefSizes','seniorityPick','assigned','flagged','locked','country'];
     // Sessions saved before the form update carry one prefSize and free-text topics.
     const students = (d.students || []).map(s => ({ ...Object.fromEntries(KEYS.map(k => [k, s[k] ?? null])), prefSizes: E.sizesOf(s) }));
     students.forEach(s => {
@@ -1650,7 +1667,7 @@ function loadSessionFile(e) {
       s.prefTopics = [...new Set((s.prefTopics || []).map(E.normalizeTopic).filter(Boolean))];
     });
     CONFERENCE = d.conference || CONFERENCE;
-    COMMITTEES = d.committees; committeeDraft = clone(COMMITTEES);
+    COMMITTEES = withPositions(d.committees); committeeDraft = clone(COMMITTEES);
     saveSettings();
     setDelegates(students, !!d.sample);
     if (d.assigned) { result = { fills: {} }; refreshAll(); }

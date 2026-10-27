@@ -53,6 +53,150 @@
   const FIRST_YEAR_ADVANCED = { penalty: 20, share: 0.1 };
   const firstYearSeats = c => c.tier === 'Advanced' ? Math.max(1, Math.floor(c.cap * FIRST_YEAR_ADVANCED.share)) : c.cap;
 
+  // ── Countries ───────────────────────────────────────────
+  // Every UN member, ranked by how much a delegate carries the room: tier 1 are
+  // the major powers, tier 2 the big players, tier 3 regional powers, tier 4
+  // everyone else. Regions: AF Africa · EU Europe · AP Asia-Pacific · ME Middle
+  // East & North Africa · AM Americas (a country can be in two).
+  const COUNTRY_TIERS = [
+    'United States:AM; China:AP; Russia:EU,AP; United Kingdom:EU; France:EU; Germany:EU; Japan:AP; India:AP',
+    'Brazil:AM; Canada:AM; Italy:EU; South Korea:AP; Australia:AP; Saudi Arabia:ME; Turkey:EU,ME; Iran:ME; Israel:ME; ' +
+      'Indonesia:AP; Mexico:AM; South Africa:AF; Egypt:AF,ME; Nigeria:AF; Pakistan:AP; Ukraine:EU; Argentina:AM; Spain:EU; ' +
+      'United Arab Emirates:ME; Poland:EU; Netherlands:EU',
+    'Ethiopia:AF; Kenya:AF; Algeria:AF,ME; Morocco:AF,ME; Democratic Republic of the Congo:AF; Ghana:AF; Angola:AF; ' +
+      'Iraq:ME; Syria:ME; Jordan:ME; Qatar:ME; Lebanon:ME; Yemen:ME; Kuwait:ME; Libya:AF,ME; Tunisia:AF,ME; Sudan:AF,ME; ' +
+      'Afghanistan:AP; Vietnam:AP; Thailand:AP; Philippines:AP; Malaysia:AP; Singapore:AP; Bangladesh:AP; North Korea:AP; ' +
+      'New Zealand:AP; Kazakhstan:AP; Myanmar:AP; Sri Lanka:AP; Sweden:EU; Norway:EU; Switzerland:EU; Belgium:EU; Greece:EU; ' +
+      'Portugal:EU; Austria:EU; Denmark:EU; Finland:EU; Ireland:EU; Czechia:EU; Hungary:EU; Romania:EU; Serbia:EU; Belarus:EU; ' +
+      'Chile:AM; Colombia:AM; Peru:AM; Venezuela:AM; Cuba:AM; Senegal:AF; Tanzania:AF; Rwanda:AF; Côte d’Ivoire:AF; Cameroon:AF',
+    'Oman:ME; Bahrain:ME; State of Palestine:ME; Mauritania:AF,ME; Uganda:AF; Zimbabwe:AF; Zambia:AF; Mozambique:AF; Mali:AF; ' +
+      'Niger:AF; Burkina Faso:AF; Chad:AF; Somalia:AF; South Sudan:AF; Eritrea:AF; Djibouti:AF; Madagascar:AF; Malawi:AF; ' +
+      'Namibia:AF; Botswana:AF; Benin:AF; Togo:AF; Guinea:AF; Sierra Leone:AF; Liberia:AF; Gabon:AF; Republic of the Congo:AF; ' +
+      'Central African Republic:AF; Burundi:AF; Lesotho:AF; Eswatini:AF; Gambia:AF; Guinea-Bissau:AF; Equatorial Guinea:AF; ' +
+      'Cabo Verde:AF; Comoros:AF; Mauritius:AF; Seychelles:AF; São Tomé and Príncipe:AF; ' +
+      'Nepal:AP; Mongolia:AP; Cambodia:AP; Uzbekistan:AP; Laos:AP; Brunei:AP; Timor-Leste:AP; Papua New Guinea:AP; Fiji:AP; ' +
+      'Bhutan:AP; Maldives:AP; Kyrgyzstan:AP; Tajikistan:AP; Turkmenistan:AP; Samoa:AP; Tonga:AP; Vanuatu:AP; Solomon Islands:AP; ' +
+      'Kiribati:AP; Micronesia:AP; Marshall Islands:AP; Palau:AP; Nauru:AP; Tuvalu:AP; ' +
+      'Georgia:EU; Armenia:EU; Azerbaijan:EU; Slovakia:EU; Croatia:EU; Bulgaria:EU; Lithuania:EU; Latvia:EU; Estonia:EU; ' +
+      'Slovenia:EU; Bosnia and Herzegovina:EU; Albania:EU; North Macedonia:EU; Moldova:EU; Montenegro:EU; Luxembourg:EU; ' +
+      'Iceland:EU; Malta:EU; Cyprus:EU,ME; Andorra:EU; Liechtenstein:EU; Monaco:EU; San Marino:EU; ' +
+      'Ecuador:AM; Bolivia:AM; Uruguay:AM; Paraguay:AM; Panama:AM; Guatemala:AM; Haiti:AM; Jamaica:AM; Dominican Republic:AM; ' +
+      'Costa Rica:AM; Honduras:AM; El Salvador:AM; Nicaragua:AM; Trinidad and Tobago:AM; Bahamas:AM; Barbados:AM; Guyana:AM; ' +
+      'Suriname:AM; Belize:AM; Saint Lucia:AM; Grenada:AM; Saint Vincent and the Grenadines:AM; Antigua and Barbuda:AM; ' +
+      'Dominica:AM; Saint Kitts and Nevis:AM'
+  ];
+  const REGIONS = { AF:'Africa', EU:'Europe', AP:'Asia-Pacific', ME:'Middle East & North Africa', AM:'Americas' };
+  const COUNTRIES = COUNTRY_TIERS.flatMap((line, i) => line.split(';').map(e => {
+    const [name, codes] = e.trim().split(':');
+    return { name, tier: i + 1, regions: codes.split(',').map(r => REGIONS[r]) };
+  }));
+  // Where a committee tops up its country list from. '' = only its own list.
+  const POOL_OPTS = ['', 'World', ...Object.values(REGIONS)];
+
+  // Default positions, most significant first. `countries` is the committee's
+  // own list; `pool` tops it up with the most significant countries not yet
+  // listed. With neither (Courts, Press) delegates get no country. With a list
+  // and no pool, extra delegates share countries (Nation Building: several
+  // delegates per nation, each on a topic area).
+  const P5 = ['United States', 'China', 'Russia', 'United Kingdom', 'France'];
+  const DEFAULT_POSITIONS = {
+    "African Summit":                  { pool:'Africa' },
+    "Economic & Finance":              { pool:'World' },
+    "European Summit":                 { pool:'Europe' },
+    // 19 members + EU + AU; extra seats go to the next-largest countries as guests.
+    "Group of 20":                     { countries:['United States','China','Japan','Germany','India','United Kingdom','France','Russia','Brazil','Italy',
+                                          'Canada','South Korea','Australia','Mexico','Indonesia','Saudi Arabia','Turkey','Argentina','South Africa',
+                                          'European Union','African Union'], pool:'World' },
+    "International Court of Justice":  {},
+    "International Security & Crime":  { pool:'World' },
+    // 2027 topic: The Cold War in the Middle East (1979).
+    "Nation Building":                 { countries:['Iran','Afghanistan','Iraq','Israel','Egypt','Saudi Arabia','Syria','Lebanon'] },
+    "Press / Media":                   {},
+    "Social, Humanitarian & Cultural": { pool:'World' },
+    "Asia-Pacific Summit":             { pool:'Asia-Pacific' },
+    "Environment & Technology":        { pool:'World' },
+    "General Assembly":                { pool:'World' },
+    // 2027 topics are 1980s crises, so this is a 1980s council plus the parties.
+    "Historical Security Council":     { countries:['United States','Soviet Union','China','United Kingdom','France','Iran','Iraq','South Africa','Angola',
+                                          'Afghanistan','Pakistan','India','Egypt','Cuba','Saudi Arabia','Israel','West Germany','East Germany','Japan',
+                                          'Mozambique','Zimbabwe','Zambia','Kuwait','Syria','Yugoslavia'] },
+    "International Criminal Court":    {},
+    "MENA Summit":                     { pool:'Middle East & North Africa' },
+    "Pan-American Summit":             { pool:'Americas' },
+    // The P5 and the ten elected members sitting in 2026; extra seats get the next
+    // most significant countries. Update the elected ten for the conference year.
+    "Security Council":                { countries:[...P5, 'Bahrain','Colombia','Democratic Republic of the Congo','Latvia','Liberia',
+                                          'Denmark','Greece','Pakistan','Panama','Somalia'], pool:'World' },
+    "World Health Organization":       { pool:'World' }
+  };
+  COMMITTEES.forEach(c => Object.assign(c, { countries: [], pool: '' }, DEFAULT_POSITIONS[c.name]));
+
+  // A committee saved before countries existed gets the default for its name,
+  // or the whole world unless it's a Court or Press.
+  function positionsOf(c) {
+    if (Array.isArray(c.countries)) return { countries: c.countries, pool: c.pool || '' };
+    const d = DEFAULT_POSITIONS[c.name];
+    if (d) return { countries: d.countries || [], pool: d.pool || '' };
+    return { countries: [], pool: c.type === 'Court' || c.type === 'Press' ? '' : 'World' };
+  }
+
+  // The positions for a committee with n delegates, most significant first.
+  function positionsFor(c, n) {
+    const { countries, pool } = positionsOf(c);
+    const own = [...new Set(countries.map(x => String(x).trim()).filter(Boolean))];
+    // A region that runs out (MENA has 23 countries) continues with the rest of
+    // the world, as observers, rather than doubling up.
+    const inPool = x => pool === 'World' || x.regions.includes(pool);
+    const extra = pool ? [...COUNTRIES.filter(inPool), ...COUNTRIES.filter(x => !inPool(x))].map(x => x.name).filter(x => !own.includes(x)) : [];
+    const list = own.concat(extra);
+    if (!list.length) return [];
+    if (n <= list.length) return list.slice(0, n);
+    return Array.from({ length: n }, (_, i) => list[i % list.length]);   // shared countries
+  }
+
+  // Country fit: how far the experience ranking is shuffled. Big rooms follow
+  // experience most closely (a major power in a 120-seat GA has to carry a lot
+  // of delegates); in small rooms every seat matters, so it's looser. On the
+  // mock, a first-year ends up with a more significant country than a
+  // returning delegate in the same room in ~6% / 9% / 15% of pairs
+  // (0% would be strict, 50% random).
+  const COUNTRY_JITTER = { Large: 0.6, Medium: 0.8, Small: 1.0 };
+  const experience = s => (s.year === 'returning' ? 1 : 0) + ((s.grade || 9) - 9) * 0.15;
+  // Stable 0–1 noise per delegate and committee, so a re-run gives the same countries.
+  function jitter(s, c) {
+    let h = 2166136261;
+    for (const ch of `${s.id}|${s.name}|${c.id}`) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+    return (h >>> 0) / 4294967296;
+  }
+
+  /**
+   * Give every seated delegate a country. Within each committee, delegates are
+   * ranked by experience (returning first, then grade) as a percentile of THAT
+   * room, so the most experienced people present get the most significant
+   * countries whether the room has 3 returners or 80. Then a little noise is
+   * added so it's a strong tendency, not a rule.
+   */
+  function assignCountries(students, committees) {
+    committees = committees || COMMITTEES;
+    students.forEach(s => { s.country = null; });
+    for (const c of committees) {
+      const here = students.filter(s => s.assigned === c.id);
+      const positions = positionsFor(c, here.length);
+      if (!positions.length) continue;
+      // Percentile of experience in this room; ties share the average rank.
+      const exps = here.map(experience).sort((a, b) => a - b);
+      const pct = e => {
+        if (here.length < 2) return 1;
+        const lo = exps.indexOf(e), hi = exps.lastIndexOf(e);
+        return ((lo + hi) / 2) / (here.length - 1);
+      };
+      const amp = COUNTRY_JITTER[c.size] ?? COUNTRY_JITTER.Medium;
+      here.map(s => ({ s, key: pct(experience(s)) + amp * jitter(s, c) }))
+        .sort((a, b) => b.key - a.key || a.s.id - b.s.id)
+        .forEach((x, i) => { x.s.country = positions[i]; });
+    }
+  }
+
   // ── The registration form (2027 GPY Model UN, Airtable) ──
   // Defaults mirror the form so its export imports with no renaming.
   const DEFAULT_CONFERENCE = "2027 GPY Model UN Conference";
@@ -449,6 +593,7 @@
       if (bestC) seat(student, bestC);
       else student.flagged = true;  // every legal committee is full
     }
+    assignCountries(students, committees);
     return { fills };
   }
 
@@ -475,6 +620,25 @@
     if (sizesOf(student).includes(c.size)) why.push('preferred size');
     if (!why.length) why.push('best open seat');
     return why.join(' · ');
+  }
+
+  // Returning delegates' share of each room's most significant fifth of
+  // countries, next to their share of those rooms. Rooms that share countries
+  // (Nation Building) have no ranking to measure, so they're left out.
+  function countryFit(students, committees) {
+    let ret = 0, all = 0, topRet = 0, top = 0;
+    for (const c of committees) {
+      const here = students.filter(s => s.assigned === c.id && s.country);
+      const pos = positionsFor(c, here.length);
+      if (!here.length || new Set(pos).size < pos.length) continue;
+      const cut = Math.ceil(here.length / 5);
+      here.forEach(s => {
+        const r = s.year === 'returning';
+        all++; if (r) ret++;
+        if (pos.indexOf(s.country) < cut) { top++; if (r) topRet++; }
+      });
+    }
+    return all ? { returningPct: Math.round(ret / all * 100), topReturningPct: Math.round(topRet / top * 100) } : null;
   }
 
   function metrics(students, committees) {
@@ -509,7 +673,8 @@
       sizeMatch:  rate(placed.filter(s => sizesOf(s).length), s => sizesOf(s).includes(byId[s.assigned].size)),
       picksHonored: picks.filter(s => s.assigned === s.seniorityPick).length,
       picksTotal: picks.length,
-      maxSchoolShare: top ? { school: top.school, committee: top.committee, n: top.n, of: top.of, pct: Math.round(top.share * 100) } : null
+      maxSchoolShare: top ? { school: top.school, committee: top.committee, n: top.n, of: top.of, pct: Math.round(top.share * 100) } : null,
+      countryFit: countryFit(students, committees)
     };
   }
 
@@ -546,6 +711,10 @@
     const offSize = committees.filter(c => SIZE_RANGES[c.size] && (c.cap < SIZE_RANGES[c.size][0] || c.cap > SIZE_RANGES[c.size][1]));
     if (offSize.length)
       out.push({ level:'info', msg:`Seat counts outside the size the form describes: ${offSize.map(c => `${c.name} is ${c.size} with ${c.cap} seats (form says ${sizeLabel(c.size).replace(/^\w+ /, '')})`).join('; ')}.` });
+    // Rooms with more delegates than countries put several delegates on one country.
+    const shared = committees.map(c => ({ c, n: new Set(positionsFor(c, c.cap)).size })).filter(x => x.n && x.n < x.c.cap);
+    if (shared.length)
+      out.push({ level:'info', msg:`Shared countries: ${shared.map(x => `${x.c.name} has ${x.n} countries for ${x.c.cap} seats, about ${Math.round(x.c.cap / x.n)} delegates each`).join('; ')}. Add a country pool on the Committees tab if that's not intended.` });
     // Interests no committee covers can never be matched.
     const covered = new Set(committees.flatMap(c => c.topics.map(t => normalizeTopic(t))));
     const uncovered = [...new Set(students.flatMap(s => s.prefTopics))].filter(t => !covered.has(t));
@@ -569,6 +738,8 @@
       if (!SIZE_OPTS.includes(c.size)) errs.push(`${label}: unknown size "${c.size}"`);
       if (!TIER_OPTS.includes(c.tier)) errs.push(`${label}: unknown level "${c.tier}"`);
       if (!Array.isArray(c.topics)) errs.push(`${label}: topics must be a list`);
+      if (c.countries !== undefined && !Array.isArray(c.countries)) errs.push(`${label}: countries must be a list`);
+      if (c.pool !== undefined && !POOL_OPTS.includes(c.pool)) errs.push(`${label}: unknown country pool "${c.pool}"`);
     });
     return errs;
   }
@@ -576,6 +747,7 @@
   // ── Export ──────────────────────────────────────────────
   const api = {
     COMMITTEES, TYPE_OPTS, SIZE_OPTS, TIER_OPTS, COLUMN_CANDIDATES, FIRST_YEAR_ADVANCED, firstYearSeats,
+    COUNTRIES, REGIONS, POOL_OPTS, COUNTRY_JITTER, positionsOf, positionsFor, assignCountries,
     DEFAULT_CONFERENCE, INTERESTS, SIZE_RANGES, GRADES, sizeLabel,
     matchType, matchSizes, matchGrade, normalizeTopic, sizesOf, matchCommittee, acronym,
     parseCSV, parseCSVRow, csvCell, toCSV, findCol,

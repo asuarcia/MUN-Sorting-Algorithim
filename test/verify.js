@@ -56,7 +56,7 @@ check('every PII column was ignored',
   `leaked into used: ${PII.filter(c => usedColumns.includes(c)).join(', ') || 'none'}`);
 
 const ALLOWED_KEYS = ['id', 'name', 'school', 'grade', 'year', 'prefType', 'prefTopics', 'prefSizes',
-                      'seniorityPick', 'assigned', 'flagged', 'locked'];
+                      'seniorityPick', 'assigned', 'flagged', 'locked', 'country'];
 const leakedKeys = new Set();
 students.forEach(s => Object.keys(s).forEach(k => { if (!ALLOWED_KEYS.includes(k)) leakedKeys.add(k); }));
 check('delegate objects hold no extra fields (no PII stored)',
@@ -198,6 +198,68 @@ check('every placed delegate has an explanation',
 check('default committee list is valid', E.validateCommittees(E.COMMITTEES).length === 0);
 check('bad committee rows are rejected',
   E.validateCommittees([{ name: '', cap: 0, type: 'X', size: 'Small', tier: 'Beginner', topics: [] }]).length >= 3);
+
+// ── 9. Countries ────────────────────────────────────────
+console.log('\nCountries');
+E.runAssignment(students, E.COMMITTEES);
+const noCountry = E.COMMITTEES.filter(c => !E.positionsFor(c, 1).length).map(c => c.id);
+check('every seated delegate outside Courts/Press has a country',
+  students.filter(s => s.assigned && !noCountry.includes(s.assigned)).every(s => s.country) &&
+  students.filter(s => noCountry.includes(s.assigned)).every(s => !s.country),
+  `no countries in: ${E.COMMITTEES.filter(c => noCountry.includes(c.id)).map(c => c.name).join(', ')}`);
+const dupRooms = E.COMMITTEES.filter(c => {
+  const here = students.filter(s => s.assigned === c.id);
+  const pos = E.positionsFor(c, here.length);
+  return pos.length && new Set(pos).size === pos.length && new Set(here.map(s => s.country)).size !== here.length;
+});
+check('no country is given twice in a room that has enough countries', dupRooms.length === 0, dupRooms.map(c => c.name).join(', ') || 'clean');
+const nb = E.COMMITTEES.find(c => c.name === 'Nation Building');
+const nbCounts = Object.values(students.filter(s => s.assigned === nb.id).reduce((a, s) => (a[s.country] = (a[s.country] || 0) + 1, a), {}));
+check('Nation Building spreads delegates evenly across its nations', Math.max(...nbCounts) - Math.min(...nbCounts) <= 1, nbCounts.join(' / '));
+const mena = E.COMMITTEES.find(c => c.name === 'MENA Summit');
+check('a region that runs out continues with outside countries, not duplicates',
+  new Set(E.positionsFor(mena, mena.cap)).size === mena.cap);
+check('Security Council starts with the P5', ['United States', 'China', 'Russia', 'United Kingdom', 'France'].every(n => E.positionsFor(E.COMMITTEES.find(c => c.name === 'Security Council'), 5).includes(n)));
+
+// Inversions: (first-year, returning) pairs in one room where the first-year
+// got the more significant country. 0% would be strict, ~50% random.
+const inversions = size => {
+  let inv = 0, pairs = 0;
+  E.COMMITTEES.filter(c => c.size === size).forEach(c => {
+    const here = students.filter(s => s.assigned === c.id && s.country);
+    const pos = E.positionsFor(c, here.length);
+    if (new Set(pos).size < pos.length) return;
+    const r = s => pos.indexOf(s.country);
+    const F = here.filter(s => s.year === 'first'), R = here.filter(s => s.year === 'returning');
+    F.forEach(f => R.forEach(x => { pairs++; if (r(f) < r(x)) inv++; }));
+  });
+  return pairs ? inv / pairs * 100 : 0;
+};
+const invL = inversions('Large'), invM = inversions('Medium'), invS = inversions('Small');
+check('returning delegates get the more significant countries, but not strictly',
+  [invL, invM, invS].every(p => p > 1 && p < 25), `first-year ahead of a returner: Large ${invL.toFixed(1)}% · Medium ${invM.toFixed(1)}% · Small ${invS.toFixed(1)}%`);
+check('big committees follow experience more closely than small ones', invL < invS);
+const statesBefore = students.map(s => s.country).join('|');
+E.assignCountries(students, E.COMMITTEES);
+check('countries are deterministic', students.map(s => s.country).join('|') === statesBefore);
+
+// A room with very few returners still ranks by what experience there is.
+const world = [{ id: 1, name: 'GA', type: 'General', topics: [], size: 'Large', cap: 120, tier: 'Beginner', countries: [], pool: 'World' }];
+const top = E.positionsFor(world[0], 60);
+const room = (returners) => Array.from({ length: 60 }, (_, i) => ({ id: i + 1, name: `D${i}`, school: 'S', year: i < returners ? 'returning' : 'first', grade: 9 + (i % 4), prefTopics: [], prefSizes: [], assigned: 1 }));
+const few = room(3); E.assignCountries(few, world);
+const fewRet = few.filter(s => s.year === 'returning').map(s => top.indexOf(s.country));
+check('with only 3 returners, they still get top countries', fewRet.every(r => r < 15), `positions ${fewRet.map(r => r + 1).join(', ')} of 60`);
+const meanPos = (list, g) => { const r = list.filter(s => s.year === 'first' && s.grade === g).map(s => top.indexOf(s.country)); return r.reduce((a, b) => a + b, 0) / r.length; };
+check('...and older first-years get the next most significant ones', meanPos(few, 12) < meanPos(few, 9),
+  `mean position: grade 12 first-years ${(meanPos(few, 12) + 1).toFixed(0)}, grade 9 ${(meanPos(few, 9) + 1).toFixed(0)}`);
+const none = room(0); E.assignCountries(none, world);
+check('with no returners at all, grade decides', meanPos(none, 12) < meanPos(none, 11) && meanPos(none, 11) < meanPos(none, 9));
+check('committees saved before countries get their defaults by name',
+  E.positionsOf({ name: 'Security Council', type: 'Topic-based' }).countries[0] === 'United States' &&
+  E.positionsOf({ name: 'My Custom Court', type: 'Court' }).pool === '' && E.positionsOf({ name: 'Custom', type: 'General' }).pool === 'World');
+const cf = E.metrics(students, E.COMMITTEES).countryFit;
+console.log(`        returning delegates: ${cf.returningPct}% of those with a country, ${cf.topReturningPct}% of each room's top fifth`);
 
 // ── Distribution snapshot ───────────────────────────────
 console.log('\nCommittee fill (assigned / cap · tier):');
