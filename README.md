@@ -24,13 +24,8 @@ Sorts Model UN delegates into committees from your registration spreadsheet in s
 The following are directions that are also within the program itself once downloaded/opened
 
 1. **Import.** In Airtable, open the registration table and **Download CSV** (or export to Excel), then drop the file in. It's set up for the 2027 GPY Model UN registration form, so no columns need renaming. Other forms work too.
-<<<<<<< HEAD
-2. **Committees.** The default line-up is the 18 committees on the [GPY Model UN committees page](https://www.gpyce.org/mun-committees), each tagged with the form interests its 2027 topics cover. Adjust names, seats, topics, and whether each is Beginner, Intermediate, or Advanced to fit your conference. The app remembers them for next time.
-3. **Run.** Click **Run Assignment**. Every delegate gets a seat, and the app warns you first if you don't have enough seats.
-=======
-2. **Committees.** The default line-up is the 18 committees on the [GPY Model UN committees page](https://www.gpyce.org/mun-committees), each tagged with the form interests its 2027 topics cover. Adjust names, seats, topics, countries and whether each is Beginner, Intermediate or Advanced to fit your conference. The app remembers them for next time.
+2. **Committees.** The default line-up is the 18 committees on the [GPY Model UN committees page](https://www.gpyce.org/mun-committees), each tagged with the form interests its 2027 topics cover. Adjust names, seats, topics, countries, and whether each is Beginner, Intermediate, or Advanced to fit your conference. The app remembers them for next time.
 3. **Run.** Click **Run Assignment**. Every delegate gets a seat and a country, and the app warns you first if you don't have enough seats.
->>>>>>> 72b8842 (Assign every delegate a country)
 4. **Review & export.** Click any committee to see who's in it and **Move** people by hand. Hand placements stick if you re-run. Then **Export rosters (Excel)** to get one file with:
    - a summary,
    - every delegate and *why* they got their committee,
@@ -73,9 +68,6 @@ Everything runs on your computer. Nothing is uploaded, not even in the browser v
 - **Delegations are spread out** so no single school dominates a room.
 - If every committee a delegate is allowed into is full, they're **flagged** so you can place them by hand.
 
-<<<<<<< HEAD
-After each run, you see how many delegates got one of their interests and a size they picked, how many seniority picks were honored, and the largest share of any room held by one school. Before a run, the app warns about committees whose seat count doesn't fit the form's size ranges, and interests no committee covers.
-=======
 ### Countries
 
 Once everyone has a committee, each delegate gets a country. Returning delegates tend to get the more significant ones, especially in big committees, but it's a strong tendency, not a rule.
@@ -95,8 +87,7 @@ Once everyone has a committee, each delegate gets a country. Returning delegates
 
 You can change any committee's countries on the Committees tab: list its own countries, most significant first, and pick what to fill the remaining seats from.
 
-After each run you see how many delegates got one of their interests and a size they picked, how many seniority picks were honored, the share of each room's most significant countries held by returning delegates, and the largest share of any room held by one school. Before a run, the app warns about committees whose seat count doesn't fit the form's size ranges, and interests no committee covers.
->>>>>>> 72b8842 (Assign every delegate a country)
+After each run, you see how many delegates got one of their interests and a size they picked, how many seniority picks were honored, the share of each room's most significant countries held by returning delegates, and the largest share of any room held by one school. Before a run, the app warns about committees whose seat count doesn't fit the form's size ranges, and interests no committee covers.
 
 ---
 
